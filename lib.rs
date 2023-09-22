@@ -1,132 +1,208 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-use ink::prelude::{string::String, vec::Vec};
+mod traits;
+mod types;
 
-// `u128` must be enough to cover most of the use-cases of standard tokens.
-type Balance = u128;
-// AccountId is a 32 bytes Array, like in Substrate-based blockchains.
-type AccountId = [u8; 32];
+#[ink::contract]
+mod token {
+    use crate::traits::PSP22;
+    use crate::types::{PSP22Data, PSP22Error};
 
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum PSP22Error {
-    /// Custom error type for cases in which an implementation adds its own restrictions.
-    Custom(String),
-    /// Returned if not enough balance to fulfill a request is available.
-    InsufficientBalance,
-    /// Returned if not enough allowance to fulfill a request is available.
-    InsufficientAllowance,
-    /// Returned if recipient's address is zero.
-    ZeroRecipientAddress,
-    /// Returned if sender's address is zero.
-    ZeroSenderAddress,
-    /// Returned if a safe transfer check fails (e.g. if the receiving contract does not accept tokens).
-    SafeTransferCheckFailed(String),
-}
+    #[ink(storage)]
+    pub struct Token {
+        data: PSP22Data,
+    }
 
-#[ink::trait_definition]
-pub trait PSP22 {
-    /// Returns the total token supply.
-    #[ink(message)]
-    fn total_supply(&self) -> Balance;
+    impl Token {
+        #[ink(constructor)]
+        pub fn new(supply: Balance) -> Self {
+            Self {
+                data: PSP22Data::new(supply, Self::env().caller()),
+            }
+        }
+    }
 
-    /// Returns the account balance for the specified `owner`.
-    ///
-    /// Returns `0` if the account is non-existent.
-    #[ink(message)]
-    fn balance_of(&self, owner: AccountId) -> Balance;
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        spender: AccountId,
+        amount: Balance,
+    }
 
-    /// Returns the amount which `spender` is still allowed to withdraw from `owner`.
-    ///
-    /// Returns `0` if no allowance has been set.
-    #[ink(message)]
-    fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance;
-
-    /// Transfers `value` amount of tokens from the caller's account to account `to`
-    /// with additional `data` in unspecified format.
-    ///
-    /// On success a `Transfer` event is emitted.
-    ///
-    /// # Errors
-    ///
-    /// Reverts with error `InsufficientBalance` if there are not enough tokens on
-    /// the caller's account Balance.
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    ///
-    /// Reverts with error `SafeTransferCheckFailed` if the recipient is a contract and rejected the transfer.
-    #[ink(message)]
-    fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error>;
-
-    /// Transfers `value` tokens on the behalf of `from` to the account `to`
-    /// with additional `data` in unspecified format.
-    ///
-    /// This can be used to allow a contract to transfer tokens on ones behalf and/or
-    /// to charge fees in sub-currencies, for example.
-    ///
-    /// On success a `Transfer` and `Approval` events are emitted.
-    ///
-    /// # Errors
-    ///
-    /// Reverts with error `InsufficientAllowance` if there are not enough tokens allowed
-    /// for the caller to withdraw from `from`.
-    ///
-    /// Reverts with error `InsufficientBalance` if there are not enough tokens on
-    /// the the account Balance of `from`.
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    #[ink(message)]
-    fn transfer_from(
-        &mut self,
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)]
         from: AccountId,
+        #[ink(topic)]
         to: AccountId,
         value: Balance,
-        data: Vec<u8>,
-    ) -> Result<(), PSP22Error>;
+    }
 
-    /// Allows `spender` to withdraw from the caller's account multiple times, up to
-    /// the `value` amount.
-    ///
-    /// If this function is called again it overwrites the current allowance with `value`.
-    ///
-    /// An `Approval` event is emitted.
-    ///
-    /// # Errors
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    #[ink(message)]
-    fn approve(&mut self, spender: AccountId, amount: Balance) -> Result<(), PSP22Error>;
+    impl PSP22 for Token {
+        #[ink(message)]
+        fn total_supply(&self) -> Balance {
+            self.data.total_supply
+        }
 
-    /// Atomically increases the allowance granted to `spender` by the caller.
-    ///
-    /// An `Approval` event is emitted.
-    ///
-    /// # Errors
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    #[ink(message)]
-    fn increase_allowance(&mut self, spender: AccountId, by: Balance) -> Result<(), PSP22Error>;
+        #[ink(message)]
+        fn balance_of(&self, owner: AccountId) -> Balance {
+            self.data.balances.get(owner).unwrap_or_default()
+        }
 
-    /// Atomically decreases the allowance granted to `spender` by the caller.
-    ///
-    /// An `Approval` event is emitted.
-    ///
-    /// # Errors
-    ///
-    /// Reverts with error `InsufficientAllowance` if there are not enough tokens allowed
-    /// by owner for `spender`.
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    #[ink(message)]
-    fn decrease_allowance(&mut self, spender: AccountId, by: Balance) -> Result<(), PSP22Error>;
+        #[ink(message)]
+        fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
+            self.data
+                .allowances
+                .get((owner, spender))
+                .unwrap_or_default()
+        }
+
+        #[ink(message)]
+        fn transfer(
+            &mut self,
+            to: AccountId,
+            value: Balance,
+            _data: ink::prelude::vec::Vec<u8>,
+        ) -> Result<(), PSP22Error> {
+            let from = self.env().caller();
+            if from == to {
+                return Ok(());
+            }
+            let from_balance = self.balance_of(from);
+            if from_balance < value {
+                return Err(PSP22Error::InsufficientBalance);
+            }
+
+            if from_balance == value {
+                self.data.balances.remove(from);
+            } else {
+                self.data.balances.insert(from, &(from_balance - value));
+            }
+            let to_balance = self.balance_of(to);
+            // Total supply is limited by u128.MAX so no overflow is possible
+            self.data.balances.insert(to, &(to_balance + value));
+            self.env().emit_event(Transfer { from, to, value });
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn transfer_from(
+            &mut self,
+            from: AccountId,
+            to: AccountId,
+            value: Balance,
+            data: ink::prelude::vec::Vec<u8>,
+        ) -> Result<(), PSP22Error> {
+            if from == to {
+                return Ok(());
+            }
+            let caller = self.env().caller();
+            if caller == from {
+                return self.transfer(to, value, data);
+            }
+
+            let allowance = self.allowance(from, caller);
+            if allowance < value {
+                return Err(PSP22Error::InsufficientAllowance);
+            }
+            let from_balance = self.balance_of(from);
+            if from_balance < value {
+                return Err(PSP22Error::InsufficientBalance);
+            }
+
+            if allowance == value {
+                self.data.allowances.remove((from, caller));
+            } else {
+                self.data
+                    .allowances
+                    .insert((from, caller), &(allowance - value));
+            }
+            self.env().emit_event(Approval {
+                owner: from,
+                spender: caller,
+                amount: allowance - value,
+            });
+
+            if from_balance == value {
+                self.data.balances.remove(from);
+            } else {
+                self.data.balances.insert(from, &(from_balance - value));
+            }
+            let to_balance = self.balance_of(to);
+            // Total supply is limited by u128.MAX so no overflow is possible
+            self.data.balances.insert(to, &(to_balance + value));
+            self.env().emit_event(Transfer { from, to, value });
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn approve(&mut self, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+            let owner = self.env().caller();
+            if owner == spender {
+                return Ok(());
+            }
+            if amount == 0 {
+                self.data.allowances.remove((owner, spender));
+            } else {
+                self.data.allowances.insert((owner, spender), &amount);
+            }
+            self.env().emit_event(Approval {
+                owner,
+                spender,
+                amount,
+            });
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn increase_allowance(
+            &mut self,
+            spender: AccountId,
+            by: Balance,
+        ) -> Result<(), PSP22Error> {
+            let owner = self.env().caller();
+            if owner == spender {
+                return Ok(());
+            }
+            let allowance = self.allowance(owner, spender);
+            let amount = allowance.saturating_add(by);
+            self.data.allowances.insert((owner, spender), &amount);
+            self.env().emit_event(Approval {
+                owner,
+                spender,
+                amount,
+            });
+            Ok(())
+        }
+
+        #[ink(message)]
+        fn decrease_allowance(
+            &mut self,
+            spender: AccountId,
+            by: Balance,
+        ) -> Result<(), PSP22Error> {
+            let owner = self.env().caller();
+            if owner == spender {
+                return Ok(());
+            }
+            let allowance = self.allowance(owner, spender);
+            if allowance < by {
+                return Err(PSP22Error::InsufficientAllowance);
+            }
+            let amount = allowance - by;
+            if amount == 0 {
+                self.data.allowances.remove((owner, spender));
+            } else {
+                self.data.allowances.insert((owner, spender), &amount);
+            }
+            self.env().emit_event(Approval {
+                owner,
+                spender,
+                amount,
+            });
+            Ok(())
+        }
+    }
 }
