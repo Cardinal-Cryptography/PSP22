@@ -3,6 +3,10 @@
 mod traits;
 mod types;
 
+pub use traits::PSP22;
+pub use types::{PSP22Data, PSP22Error};
+
+#[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
     use crate::traits::PSP22;
