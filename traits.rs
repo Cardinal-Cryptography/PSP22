@@ -1,24 +1,24 @@
 use ink::{prelude::vec::Vec, primitives::AccountId};
 
-use crate::types::{Balance, PSP22Error};
+use crate::types::PSP22Error;
 
 #[ink::trait_definition]
 pub trait PSP22 {
     /// Returns the total token supply.
     #[ink(message)]
-    fn total_supply(&self) -> Balance;
+    fn total_supply(&self) -> u128;
 
     /// Returns the account balance for the specified `owner`.
     ///
     /// Returns `0` if the account is non-existent.
     #[ink(message)]
-    fn balance_of(&self, owner: AccountId) -> Balance;
+    fn balance_of(&self, owner: AccountId) -> u128;
 
     /// Returns the amount which `spender` is still allowed to withdraw from `owner`.
     ///
     /// Returns `0` if no allowance has been set.
     #[ink(message)]
-    fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance;
+    fn allowance(&self, owner: AccountId, spender: AccountId) -> u128;
 
     /// Transfers `value` amount of tokens from the caller's account to account `to`
     /// with additional `data` in unspecified format.
@@ -36,7 +36,7 @@ pub trait PSP22 {
     ///
     /// Reverts with error `SafeTransferCheckFailed` if the recipient is a contract and rejected the transfer.
     #[ink(message)]
-    fn transfer(&mut self, to: AccountId, value: Balance, data: Vec<u8>) -> Result<(), PSP22Error>;
+    fn transfer(&mut self, to: AccountId, value: u128, data: Vec<u8>) -> Result<(), PSP22Error>;
 
     /// Transfers `value` tokens on the behalf of `from` to the account `to`
     /// with additional `data` in unspecified format.
@@ -62,7 +62,7 @@ pub trait PSP22 {
         &mut self,
         from: AccountId,
         to: AccountId,
-        value: Balance,
+        value: u128,
         data: Vec<u8>,
     ) -> Result<(), PSP22Error>;
 
@@ -79,7 +79,7 @@ pub trait PSP22 {
     ///
     /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
     #[ink(message)]
-    fn approve(&mut self, spender: AccountId, amount: Balance) -> Result<(), PSP22Error>;
+    fn approve(&mut self, spender: AccountId, amount: u128) -> Result<(), PSP22Error>;
 
     /// Atomically increases the allowance granted to `spender` by the caller.
     ///
@@ -91,7 +91,7 @@ pub trait PSP22 {
     ///
     /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
     #[ink(message)]
-    fn increase_allowance(&mut self, spender: AccountId, by: Balance) -> Result<(), PSP22Error>;
+    fn increase_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error>;
 
     /// Atomically decreases the allowance granted to `spender` by the caller.
     ///
@@ -106,5 +106,5 @@ pub trait PSP22 {
     ///
     /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
     #[ink(message)]
-    fn decrease_allowance(&mut self, spender: AccountId, by: Balance) -> Result<(), PSP22Error>;
+    fn decrease_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error>;
 }

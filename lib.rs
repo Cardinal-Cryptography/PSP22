@@ -19,7 +19,7 @@ mod token {
 
     impl Token {
         #[ink(constructor)]
-        pub fn new(supply: Balance) -> Self {
+        pub fn new(supply: u128) -> Self {
             Self {
                 data: PSP22Data::new(supply, Self::env().caller()),
             }
@@ -32,7 +32,7 @@ mod token {
         owner: AccountId,
         #[ink(topic)]
         spender: AccountId,
-        amount: Balance,
+        amount: u128,
     }
 
     #[ink(event)]
@@ -41,22 +41,22 @@ mod token {
         from: AccountId,
         #[ink(topic)]
         to: AccountId,
-        value: Balance,
+        value: u128,
     }
 
     impl PSP22 for Token {
         #[ink(message)]
-        fn total_supply(&self) -> Balance {
+        fn total_supply(&self) -> u128 {
             self.data.total_supply
         }
 
         #[ink(message)]
-        fn balance_of(&self, owner: AccountId) -> Balance {
+        fn balance_of(&self, owner: AccountId) -> u128 {
             self.data.balances.get(owner).unwrap_or_default()
         }
 
         #[ink(message)]
-        fn allowance(&self, owner: AccountId, spender: AccountId) -> Balance {
+        fn allowance(&self, owner: AccountId, spender: AccountId) -> u128 {
             self.data
                 .allowances
                 .get((owner, spender))
@@ -67,7 +67,7 @@ mod token {
         fn transfer(
             &mut self,
             to: AccountId,
-            value: Balance,
+            value: u128,
             _data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let from = self.env().caller();
@@ -96,7 +96,7 @@ mod token {
             &mut self,
             from: AccountId,
             to: AccountId,
-            value: Balance,
+            value: u128,
             data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
             if from == to {
@@ -142,7 +142,7 @@ mod token {
         }
 
         #[ink(message)]
-        fn approve(&mut self, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        fn approve(&mut self, spender: AccountId, amount: u128) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
             if owner == spender {
                 return Ok(());
@@ -161,11 +161,7 @@ mod token {
         }
 
         #[ink(message)]
-        fn increase_allowance(
-            &mut self,
-            spender: AccountId,
-            by: Balance,
-        ) -> Result<(), PSP22Error> {
+        fn increase_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
             if owner == spender {
                 return Ok(());
@@ -182,11 +178,7 @@ mod token {
         }
 
         #[ink(message)]
-        fn decrease_allowance(
-            &mut self,
-            spender: AccountId,
-            by: Balance,
-        ) -> Result<(), PSP22Error> {
+        fn decrease_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
             if owner == spender {
                 return Ok(());
