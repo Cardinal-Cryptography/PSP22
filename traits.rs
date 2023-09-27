@@ -23,40 +23,43 @@ pub trait PSP22 {
     /// Transfers `value` amount of tokens from the caller's account to account `to`
     /// with additional `data` in unspecified format.
     ///
+    /// # Events
+    ///
     /// On success a `Transfer` event is emitted.
+    ///
+    /// No-op if the caller and `to` is the same address, returns success and no events are emitted.
     ///
     /// # Errors
     ///
-    /// Reverts with error `InsufficientBalance` if there are not enough tokens on
-    /// the caller's account Balance.
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
-    ///
-    /// Reverts with error `SafeTransferCheckFailed` if the recipient is a contract and rejected the transfer.
+    /// Reverts with `InsufficientBalance` if the `value` exceeds the caller's balance.
     #[ink(message)]
     fn transfer(&mut self, to: AccountId, value: u128, data: Vec<u8>) -> Result<(), PSP22Error>;
 
     /// Transfers `value` tokens on the behalf of `from` to the account `to`
     /// with additional `data` in unspecified format.
     ///
-    /// This can be used to allow a contract to transfer tokens on ones behalf and/or
-    /// to charge fees in sub-currencies, for example.
+    /// If `from` and the caller are different addresses, the caller must be allowed
+    /// by `from` to spend at least `value` tokens.
     ///
-    /// On success a `Transfer` and `Approval` events are emitted.
+    /// # Events
+    ///
+    /// On success a `Transfer` event is emitted.
+    ///
+    /// No-op if `from` and `to` is the same address, returns success and no events are emitted.
+    ///
+    /// If `from` and the caller are different addresses, a successful transfer results
+    /// in decreased allowance by `from` to the caller and an `Approval` event with
+    /// the new allowance amount is emitted.
     ///
     /// # Errors
     ///
-    /// Reverts with error `InsufficientAllowance` if there are not enough tokens allowed
-    /// for the caller to withdraw from `from`.
+    /// Reverts with `InsufficientBalance` if the `value` exceeds the balance of the account `from`.
     ///
-    /// Reverts with error `InsufficientBalance` if there are not enough tokens on
-    /// the the account Balance of `from`.
+    /// Reverts with `InsufficientAllowance` if `from` and the caller are different addresses and
+    /// the `value` exceeds the allowance granted by `from` to the caller.
     ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
+    /// If conditions for both `InsufficientBalance` and `InsufficientAllowance` errors are met,
+    /// reverts with `InsufficientAllowance`.
     #[ink(message)]
     fn transfer_from(
         &mut self,
@@ -67,44 +70,48 @@ pub trait PSP22 {
     ) -> Result<(), PSP22Error>;
 
     /// Allows `spender` to withdraw from the caller's account multiple times, up to
-    /// the `value` amount.
+    /// the total amount of `value`.
     ///
-    /// If this function is called again it overwrites the current allowance with `value`.
+    /// Successive calls of this method overwrite previous values.
+    ///
+    /// # Events
     ///
     /// An `Approval` event is emitted.
     ///
-    /// # Errors
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
+    /// No-op if the caller and `spender` is the same address, returns success and no events are emitted.
     #[ink(message)]
-    fn approve(&mut self, spender: AccountId, amount: u128) -> Result<(), PSP22Error>;
+    fn approve(&mut self, spender: AccountId, value: u128) -> Result<(), PSP22Error>;
 
-    /// Atomically increases the allowance granted to `spender` by the caller.
+    /// Increases by `delta-value` the allowance granted to `spender` by the caller.
     ///
-    /// An `Approval` event is emitted.
+    /// # Events
     ///
-    /// # Errors
+    /// An `Approval` event with the new allowance amount is emitted.
     ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
+    /// No-op if the caller and `spender` is the same address, returns success and no events are emitted.
     #[ink(message)]
-    fn increase_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error>;
+    fn increase_allowance(
+        &mut self,
+        spender: AccountId,
+        delta_value: u128,
+    ) -> Result<(), PSP22Error>;
 
-    /// Atomically decreases the allowance granted to `spender` by the caller.
+    /// Decreases by `delta-value` the allowance granted to `spender` by the caller.
     ///
-    /// An `Approval` event is emitted.
+    /// # Events
+    ///
+    /// An `Approval` event with the new allowance amount is emitted.
+    ///
+    /// No-op if the caller and `spender` is the same address, returns success and no events are emitted.
     ///
     /// # Errors
     ///
-    /// Reverts with error `InsufficientAllowance` if there are not enough tokens allowed
-    /// by owner for `spender`.
-    ///
-    /// Reverts with error `ZeroSenderAddress` if sender's address is zero.
-    ///
-    /// Reverts with error `ZeroRecipientAddress` if recipient's address is zero.
+    /// Reverts with `InsufficientAllowance` if `spender` and the caller are different addresses and
+    /// the `delta-value` exceeds the allowance granted by the caller to `spender`.
     #[ink(message)]
-    fn decrease_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error>;
+    fn decrease_allowance(
+        &mut self,
+        spender: AccountId,
+        delta_value: u128,
+    ) -> Result<(), PSP22Error>;
 }
