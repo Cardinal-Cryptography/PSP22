@@ -71,7 +71,7 @@ mod token {
             _data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let from = self.env().caller();
-            if from == to {
+            if from == to || value == 0 {
                 return Ok(());
             }
             let from_balance = self.balance_of(from);
@@ -99,7 +99,7 @@ mod token {
             value: u128,
             data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
-            if from == to {
+            if from == to || value == 0 {
                 return Ok(());
             }
             let caller = self.env().caller();
@@ -142,32 +142,36 @@ mod token {
         }
 
         #[ink(message)]
-        fn approve(&mut self, spender: AccountId, amount: u128) -> Result<(), PSP22Error> {
+        fn approve(&mut self, spender: AccountId, value: u128) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
             if owner == spender {
                 return Ok(());
             }
-            if amount == 0 {
+            if value == 0 {
                 self.data.allowances.remove((owner, spender));
             } else {
-                self.data.allowances.insert((owner, spender), &amount);
+                self.data.allowances.insert((owner, spender), &value);
             }
             self.env().emit_event(Approval {
                 owner,
                 spender,
-                amount,
+                amount: value,
             });
             Ok(())
         }
 
         #[ink(message)]
-        fn increase_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error> {
+        fn increase_allowance(
+            &mut self,
+            spender: AccountId,
+            delta_value: u128,
+        ) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
-            if owner == spender {
+            if owner == spender || delta_value == 0 {
                 return Ok(());
             }
             let allowance = self.allowance(owner, spender);
-            let amount = allowance.saturating_add(by);
+            let amount = allowance.saturating_add(delta_value);
             self.data.allowances.insert((owner, spender), &amount);
             self.env().emit_event(Approval {
                 owner,
@@ -178,16 +182,20 @@ mod token {
         }
 
         #[ink(message)]
-        fn decrease_allowance(&mut self, spender: AccountId, by: u128) -> Result<(), PSP22Error> {
+        fn decrease_allowance(
+            &mut self,
+            spender: AccountId,
+            delta_value: u128,
+        ) -> Result<(), PSP22Error> {
             let owner = self.env().caller();
-            if owner == spender {
+            if owner == spender || delta_value == 0 {
                 return Ok(());
             }
             let allowance = self.allowance(owner, spender);
-            if allowance < by {
+            if allowance < delta_value {
                 return Err(PSP22Error::InsufficientAllowance);
             }
-            let amount = allowance - by;
+            let amount = allowance - delta_value;
             if amount == 0 {
                 self.data.allowances.remove((owner, spender));
             } else {

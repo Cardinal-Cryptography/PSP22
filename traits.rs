@@ -27,7 +27,8 @@ pub trait PSP22 {
     ///
     /// On success a `Transfer` event is emitted.
     ///
-    /// No-op if the caller and `to` is the same address, returns success and no events are emitted.
+    /// No-op if the caller and `to` is the same address or `value` is zero, returns success
+    /// and no events are emitted.
     ///
     /// # Errors
     ///
@@ -45,7 +46,8 @@ pub trait PSP22 {
     ///
     /// On success a `Transfer` event is emitted.
     ///
-    /// No-op if `from` and `to` is the same address, returns success and no events are emitted.
+    /// No-op if `from` and `to` is the same address or `value` is zero, returns success
+    /// and no events are emitted.
     ///
     /// If `from` and the caller are different addresses, a successful transfer results
     /// in decreased allowance by `from` to the caller and an `Approval` event with
@@ -88,7 +90,8 @@ pub trait PSP22 {
     ///
     /// An `Approval` event with the new allowance amount is emitted.
     ///
-    /// No-op if the caller and `spender` is the same address, returns success and no events are emitted.
+    /// No-op if the caller and `spender` is the same address or `delta-value` is zero, returns success
+    /// and no events are emitted.
     #[ink(message)]
     fn increase_allowance(
         &mut self,
@@ -102,7 +105,8 @@ pub trait PSP22 {
     ///
     /// An `Approval` event with the new allowance amount is emitted.
     ///
-    /// No-op if the caller and `spender` is the same address, returns success and no events are emitted.
+    /// No-op if the caller and `spender` is the same address or `delta-value` is zero, returns success
+    /// and no events are emitted.
     ///
     /// # Errors
     ///
