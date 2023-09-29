@@ -123,11 +123,6 @@ mod token {
                     .allowances
                     .insert((from, caller), &(allowance - value));
             }
-            self.env().emit_event(Approval {
-                owner: from,
-                spender: caller,
-                amount: allowance - value,
-            });
 
             if from_balance == value {
                 self.data.balances.remove(from);
@@ -137,6 +132,11 @@ mod token {
             let to_balance = self.balance_of(to);
             // Total supply is limited by u128.MAX so no overflow is possible
             self.data.balances.insert(to, &(to_balance + value));
+            self.env().emit_event(Approval {
+                owner: from,
+                spender: caller,
+                amount: allowance - value,
+            });
             self.env().emit_event(Transfer { from, to, value });
             Ok(())
         }
