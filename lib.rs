@@ -82,11 +82,15 @@ mod token {
             if from_balance == value {
                 self.data.balances.remove(from);
             } else {
-                self.data.balances.insert(from, &(from_balance - value));
+                self.data
+                    .balances
+                    .insert(from, &(from_balance.saturating_sub(value)));
             }
             let to_balance = self.balance_of(to);
             // Total supply is limited by u128.MAX so no overflow is possible
-            self.data.balances.insert(to, &(to_balance + value));
+            self.data
+                .balances
+                .insert(to, &(to_balance.saturating_add(value)));
             self.env().emit_event(Transfer { from, to, value });
             Ok(())
         }
@@ -121,21 +125,25 @@ mod token {
             } else {
                 self.data
                     .allowances
-                    .insert((from, caller), &(allowance - value));
+                    .insert((from, caller), &(allowance.saturating_sub(value)));
             }
 
             if from_balance == value {
                 self.data.balances.remove(from);
             } else {
-                self.data.balances.insert(from, &(from_balance - value));
+                self.data
+                    .balances
+                    .insert(from, &(from_balance.saturating_sub(value)));
             }
             let to_balance = self.balance_of(to);
             // Total supply is limited by u128.MAX so no overflow is possible
-            self.data.balances.insert(to, &(to_balance + value));
+            self.data
+                .balances
+                .insert(to, &(to_balance.saturating_add(value)));
             self.env().emit_event(Approval {
                 owner: from,
                 spender: caller,
-                amount: allowance - value,
+                amount: allowance.saturating_sub(value),
             });
             self.env().emit_event(Transfer { from, to, value });
             Ok(())
@@ -195,7 +203,7 @@ mod token {
             if allowance < delta_value {
                 return Err(PSP22Error::InsufficientAllowance);
             }
-            let amount = allowance - delta_value;
+            let amount = allowance.saturating_sub(delta_value);
             if amount == 0 {
                 self.data.allowances.remove((owner, spender));
             } else {
