@@ -13,9 +13,9 @@ pub enum PSP22Event {
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct PSP22Data {
-    pub total_supply: u128,
-    pub balances: Mapping<AccountId, u128>,
-    pub allowances: Mapping<(AccountId, AccountId), u128>,
+    total_supply: u128,
+    balances: Mapping<AccountId, u128>,
+    allowances: Mapping<(AccountId, AccountId), u128>,
 }
 
 impl PSP22Data {
