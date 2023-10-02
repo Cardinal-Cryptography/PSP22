@@ -41,9 +41,9 @@ mod token {
     #[ink(event)]
     pub struct Transfer {
         #[ink(topic)]
-        from: AccountId,
+        from: Option<AccountId>,
         #[ink(topic)]
-        to: AccountId,
+        to: Option<AccountId>,
         value: u128,
     }
 
@@ -94,7 +94,11 @@ mod token {
             self.data
                 .balances
                 .insert(to, &(to_balance.saturating_add(value)));
-            self.env().emit_event(Transfer { from, to, value });
+            self.env().emit_event(Transfer {
+                from: Some(from),
+                to: Some(to),
+                value,
+            });
             Ok(())
         }
 
@@ -148,7 +152,11 @@ mod token {
                 spender: caller,
                 amount: allowance.saturating_sub(value),
             });
-            self.env().emit_event(Transfer { from, to, value });
+            self.env().emit_event(Transfer {
+                from: Some(from),
+                to: Some(to),
+                value,
+            });
             Ok(())
         }
 
