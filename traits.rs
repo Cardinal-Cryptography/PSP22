@@ -1,6 +1,6 @@
 use ink::{prelude::vec::Vec, primitives::AccountId};
 
-use crate::types::PSP22Error;
+use crate::errors::PSP22Error;
 
 #[ink::trait_definition]
 pub trait PSP22 {

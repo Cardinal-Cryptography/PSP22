@@ -1,16 +1,19 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+mod data;
+mod errors;
 mod traits;
-mod types;
 
+pub use data::PSP22Data;
+pub use errors::PSP22Error;
 pub use traits::PSP22;
-pub use types::{PSP22Data, PSP22Error};
 
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
+    use crate::data::PSP22Data;
+    use crate::errors::PSP22Error;
     use crate::traits::PSP22;
-    use crate::types::{PSP22Data, PSP22Error};
 
     #[ink(storage)]
     pub struct Token {
