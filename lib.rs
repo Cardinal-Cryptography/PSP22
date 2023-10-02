@@ -83,9 +83,9 @@ mod token {
             &mut self,
             to: AccountId,
             value: u128,
-            data: ink::prelude::vec::Vec<u8>,
+            _data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
-            let events = self.data.transfer(self.env().caller(), to, value, data)?;
+            let events = self.data.transfer(self.env().caller(), to, value)?;
             self.emit_events(events);
             Ok(())
         }
@@ -96,11 +96,11 @@ mod token {
             from: AccountId,
             to: AccountId,
             value: u128,
-            data: ink::prelude::vec::Vec<u8>,
+            _data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let events = self
                 .data
-                .transfer_from(self.env().caller(), from, to, value, data)?;
+                .transfer_from(self.env().caller(), from, to, value)?;
             self.emit_events(events);
             Ok(())
         }

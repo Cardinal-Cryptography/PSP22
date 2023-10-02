@@ -46,7 +46,6 @@ impl PSP22Data {
         caller: AccountId,
         to: AccountId,
         value: u128,
-        _data: Vec<u8>,
     ) -> Result<Vec<PSP22Event>, PSP22Error> {
         if caller == to || value == 0 {
             return Ok(vec![]);
@@ -75,13 +74,12 @@ impl PSP22Data {
         from: AccountId,
         to: AccountId,
         value: u128,
-        data: Vec<u8>,
     ) -> Result<Vec<PSP22Event>, PSP22Error> {
         if from == to || value == 0 {
             return Ok(vec![]);
         }
         if caller == from {
-            return self.transfer(caller, to, value, data);
+            return self.transfer(caller, to, value);
         }
 
         let allowance = self.allowance(from, caller);
