@@ -88,8 +88,7 @@ mod token {
             _data: ink::prelude::vec::Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let events = self.data.transfer(self.env().caller(), to, value)?;
-            self.emit_events(events);
-            Ok(())
+            Ok(self.emit_events(events))
         }
 
         #[ink(message)]
@@ -103,15 +102,13 @@ mod token {
             let events = self
                 .data
                 .transfer_from(self.env().caller(), from, to, value)?;
-            self.emit_events(events);
-            Ok(())
+            Ok(self.emit_events(events))
         }
 
         #[ink(message)]
         fn approve(&mut self, spender: AccountId, value: u128) -> Result<(), PSP22Error> {
             let events = self.data.approve(self.env().caller(), spender, value)?;
-            self.emit_events(events);
-            Ok(())
+            Ok(self.emit_events(events))
         }
 
         #[ink(message)]
@@ -123,8 +120,7 @@ mod token {
             let events = self
                 .data
                 .increase_allowance(self.env().caller(), spender, delta_value)?;
-            self.emit_events(events);
-            Ok(())
+            Ok(self.emit_events(events))
         }
 
         #[ink(message)]
@@ -136,8 +132,7 @@ mod token {
             let events = self
                 .data
                 .decrease_allowance(self.env().caller(), spender, delta_value)?;
-            self.emit_events(events);
-            Ok(())
+            Ok(self.emit_events(events))
         }
     }
 }
