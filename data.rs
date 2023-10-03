@@ -6,8 +6,16 @@ use ink::{
 };
 
 pub enum PSP22Event {
-    Transfer(Option<AccountId>, Option<AccountId>, u128),
-    Approval(AccountId, AccountId, u128),
+    Transfer {
+        from: Option<AccountId>,
+        to: Option<AccountId>,
+        value: u128,
+    },
+    Approval {
+        owner: AccountId,
+        spender: AccountId,
+        amount: u128,
+    },
 }
 
 #[ink::storage_item]
@@ -65,7 +73,11 @@ impl PSP22Data {
         // Total supply is limited by u128.MAX so no overflow is possible
         self.balances
             .insert(to, &(to_balance.saturating_add(value)));
-        Ok(vec![PSP22Event::Transfer(Some(caller), Some(to), value)])
+        Ok(vec![PSP22Event::Transfer {
+            from: Some(caller),
+            to: Some(to),
+            value,
+        }])
     }
 
     pub fn transfer_from(
@@ -109,8 +121,16 @@ impl PSP22Data {
         self.balances
             .insert(to, &(to_balance.saturating_add(value)));
         Ok(vec![
-            PSP22Event::Approval(from, caller, allowance.saturating_sub(value)),
-            PSP22Event::Transfer(Some(from), Some(to), value),
+            PSP22Event::Approval {
+                owner: from,
+                spender: caller,
+                amount: allowance.saturating_sub(value),
+            },
+            PSP22Event::Transfer {
+                from: Some(from),
+                to: Some(to),
+                value,
+            },
         ])
     }
 
@@ -128,7 +148,11 @@ impl PSP22Data {
         } else {
             self.allowances.insert((owner, spender), &value);
         }
-        Ok(vec![PSP22Event::Approval(owner, spender, value)])
+        Ok(vec![PSP22Event::Approval {
+            owner,
+            spender,
+            amount: value,
+        }])
     }
 
     pub fn increase_allowance(
@@ -143,7 +167,11 @@ impl PSP22Data {
         let allowance = self.allowance(owner, spender);
         let amount = allowance.saturating_add(delta_value);
         self.allowances.insert((owner, spender), &amount);
-        Ok(vec![PSP22Event::Approval(owner, spender, amount)])
+        Ok(vec![PSP22Event::Approval {
+            owner,
+            spender,
+            amount,
+        }])
     }
 
     pub fn decrease_allowance(
@@ -165,6 +193,10 @@ impl PSP22Data {
         } else {
             self.allowances.insert((owner, spender), &amount);
         }
-        Ok(vec![PSP22Event::Approval(owner, spender, amount)])
+        Ok(vec![PSP22Event::Approval {
+            owner,
+            spender,
+            amount,
+        }])
     }
 }

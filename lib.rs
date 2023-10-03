@@ -29,16 +29,18 @@ mod token {
         fn emit_events(&self, events: ink::prelude::vec::Vec<PSP22Event>) {
             for event in events {
                 match event {
-                    PSP22Event::Transfer(from, to, value) => {
+                    PSP22Event::Transfer { from, to, value } => {
                         self.env().emit_event(Transfer { from, to, value })
                     }
-                    PSP22Event::Approval(owner, spender, amount) => {
-                        self.env().emit_event(Approval {
-                            owner,
-                            spender,
-                            amount,
-                        })
-                    }
+                    PSP22Event::Approval {
+                        owner,
+                        spender,
+                        amount,
+                    } => self.env().emit_event(Approval {
+                        owner,
+                        spender,
+                        amount,
+                    }),
                 }
             }
         }
