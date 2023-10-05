@@ -199,4 +199,43 @@ impl PSP22Data {
             amount,
         }])
     }
+
+    pub fn mint(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+        if value == 0 {
+            return Ok(vec![]);
+        }
+        let new_supply = self.total_supply.saturating_add(value);
+        let value = new_supply.saturating_sub(self.total_supply);
+        self.total_supply = new_supply;
+        let balance = self.balance_of(account);
+        self.balances
+            .insert(account, &(balance.saturating_add(value)));
+        Ok(vec![PSP22Event::Transfer {
+            from: None,
+            to: Some(account),
+            value,
+        }])
+    }
+
+    pub fn burn(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+        if value == 0 {
+            return Ok(vec![]);
+        }
+        let balance = self.balance_of(account);
+        if balance < value {
+            return Err(PSP22Error::InsufficientBalance);
+        }
+        if balance == value {
+            self.balances.remove(account);
+        } else {
+            self.balances
+                .insert(account, &(balance.saturating_sub(value)));
+        }
+        self.total_supply = self.total_supply.saturating_sub(value);
+        Ok(vec![PSP22Event::Transfer {
+            from: Some(account),
+            to: None,
+            value,
+        }])
+    }
 }
