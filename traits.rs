@@ -1,4 +1,7 @@
-use ink::{prelude::vec::Vec, primitives::AccountId};
+use ink::{
+    prelude::{string::String, vec::Vec},
+    primitives::AccountId,
+};
 
 use crate::errors::PSP22Error;
 
@@ -118,4 +121,17 @@ pub trait PSP22 {
         spender: AccountId,
         delta_value: u128,
     ) -> Result<(), PSP22Error>;
+}
+
+#[ink::trait_definition]
+pub trait PSP22Metadata {
+    /// Returns the token name.
+    #[ink(message)]
+    fn token_name(&self) -> Option<String>;
+    /// Returns the token symbol.
+    #[ink(message)]
+    fn token_symbol(&self) -> Option<String>;
+    /// Returns the token decimals.
+    #[ink(message)]
+    fn token_decimals(&self) -> u8;
 }
