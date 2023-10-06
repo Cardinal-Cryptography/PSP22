@@ -200,6 +200,7 @@ impl PSP22Data {
         }])
     }
 
+    #[cfg(feature = "mintable")]
     pub fn mint(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
@@ -217,6 +218,7 @@ impl PSP22Data {
         }])
     }
 
+    #[cfg(feature = "burnable")]
     pub fn burn(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
