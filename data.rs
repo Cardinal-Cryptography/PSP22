@@ -209,7 +209,7 @@ impl PSP22Data {
             .total_supply
             .checked_add(value)
             .ok_or(PSP22Error::Custom(String::from(
-                "Max PSP22 supply exceeded",
+                "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
             )))?;
         self.total_supply = new_supply;
         let new_balance = self.balance_of(account).saturating_add(value);
