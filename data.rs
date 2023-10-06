@@ -1,6 +1,6 @@
 use crate::PSP22Error;
 use ink::{
-    prelude::{vec, vec::Vec},
+    prelude::{string::String, vec, vec::Vec},
     primitives::AccountId,
     storage::Mapping,
 };
@@ -205,12 +205,15 @@ impl PSP22Data {
         if value == 0 {
             return Ok(vec![]);
         }
-        let new_supply = self.total_supply.saturating_add(value);
-        let value = new_supply.saturating_sub(self.total_supply);
+        let new_supply = self
+            .total_supply
+            .checked_add(value)
+            .ok_or(PSP22Error::Custom(String::from(
+                "Max PSP22 supply exceeded",
+            )))?;
         self.total_supply = new_supply;
-        let balance = self.balance_of(account);
-        self.balances
-            .insert(account, &(balance.saturating_add(value)));
+        let new_balance = self.balance_of(account).saturating_add(value);
+        self.balances.insert(account, &new_balance);
         Ok(vec![PSP22Event::Transfer {
             from: None,
             to: Some(account),
