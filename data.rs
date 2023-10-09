@@ -5,6 +5,9 @@ use ink::{
     storage::Mapping,
 };
 
+#[cfg(any(feature = "mintable", feature = "burnable"))]
+use ink::prelude::string::String;
+
 pub enum PSP22Event {
     Transfer {
         from: Option<AccountId>,
@@ -197,6 +200,50 @@ impl PSP22Data {
             owner,
             spender,
             amount,
+        }])
+    }
+
+    #[cfg(feature = "mintable")]
+    pub fn mint(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+        if value == 0 {
+            return Ok(vec![]);
+        }
+        let new_supply = self
+            .total_supply
+            .checked_add(value)
+            .ok_or(PSP22Error::Custom(String::from(
+                "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
+            )))?;
+        self.total_supply = new_supply;
+        let new_balance = self.balance_of(account).saturating_add(value);
+        self.balances.insert(account, &new_balance);
+        Ok(vec![PSP22Event::Transfer {
+            from: None,
+            to: Some(account),
+            value,
+        }])
+    }
+
+    #[cfg(feature = "burnable")]
+    pub fn burn(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+        if value == 0 {
+            return Ok(vec![]);
+        }
+        let balance = self.balance_of(account);
+        if balance < value {
+            return Err(PSP22Error::InsufficientBalance);
+        }
+        if balance == value {
+            self.balances.remove(account);
+        } else {
+            self.balances
+                .insert(account, &(balance.saturating_sub(value)));
+        }
+        self.total_supply = self.total_supply.saturating_sub(value);
+        Ok(vec![PSP22Event::Transfer {
+            from: Some(account),
+            to: None,
+            value,
         }])
     }
 }
