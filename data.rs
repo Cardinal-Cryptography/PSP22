@@ -1,9 +1,12 @@
 use crate::PSP22Error;
 use ink::{
-    prelude::{string::String, vec, vec::Vec},
+    prelude::{vec, vec::Vec},
     primitives::AccountId,
     storage::Mapping,
 };
+
+#[cfg(any(feature = "mintable", feature = "burnable"))]
+use ink::prelude::string::String;
 
 pub enum PSP22Event {
     Transfer {
