@@ -135,3 +135,38 @@ pub trait PSP22Metadata {
     #[ink(message)]
     fn token_decimals(&self) -> u8;
 }
+
+#[ink::trait_definition]
+pub trait PSP22Burnable {
+    /// Burns `value` tokens from the senders account.
+    ///
+    /// # Events
+    ///
+    /// On success a `Transfer` event is emitted with `None` recipient.
+    ///
+    /// No-op if `value` is zero, returns success and no events are emitted.
+    ///
+    /// # Errors
+    ///
+    /// Reverts with `InsufficientBalance` if the `value` exceeds the caller's balance.
+    #[ink(message)]
+    fn burn(&mut self, value: u128) -> Result<(), PSP22Error>;
+}
+
+#[ink::trait_definition]
+pub trait PSP22Mintable {
+    /// Mints `value` tokens to the senders account.
+    ///
+    /// # Events
+    ///
+    /// On success a `Transfer` event is emitted with `None` sender.
+    ///
+    /// No-op if `value` is zero, returns success and no events are emitted.
+    ///
+    /// # Errors
+    ///
+    /// Reverts with `Custom (max supply exceeded)` if the total supply increased by
+    /// `value` exceeds maximal value of `u128` type.
+    #[ink(message)]
+    fn mint(&mut self, value: u128) -> Result<(), PSP22Error>;
+}

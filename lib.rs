@@ -6,7 +6,7 @@ mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
-pub use traits::{PSP22Metadata, PSP22};
+pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
 #[cfg(feature = "contract")]
 #[ink::contract]
