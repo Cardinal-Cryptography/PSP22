@@ -1,6 +1,6 @@
 [package]
 name = "psp22"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Hans <michal.handzlik@cardinals.cc>"]
 edition = "2021"
 
@@ -21,6 +21,4 @@ std = [
     "scale-info/std",
 ]
 contract = []
-mintable = []
-burnable = []
 ink-as-dependency = []

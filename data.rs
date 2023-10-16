@@ -1,12 +1,10 @@
 use crate::PSP22Error;
+use ink::prelude::string::String;
 use ink::{
     prelude::{vec, vec::Vec},
     primitives::AccountId,
     storage::Mapping,
 };
-
-#[cfg(any(feature = "mintable", feature = "burnable"))]
-use ink::prelude::string::String;
 
 pub enum PSP22Event {
     Transfer {
@@ -203,8 +201,7 @@ impl PSP22Data {
         }])
     }
 
-    #[cfg(feature = "mintable")]
-    pub fn mint(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+    pub fn mint(&mut self, to: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
         }
@@ -215,33 +212,31 @@ impl PSP22Data {
                 "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
             )))?;
         self.total_supply = new_supply;
-        let new_balance = self.balance_of(account).saturating_add(value);
-        self.balances.insert(account, &new_balance);
+        let new_balance = self.balance_of(to).saturating_add(value);
+        self.balances.insert(to, &new_balance);
         Ok(vec![PSP22Event::Transfer {
             from: None,
-            to: Some(account),
+            to: Some(to),
             value,
         }])
     }
 
-    #[cfg(feature = "burnable")]
-    pub fn burn(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+    pub fn burn(&mut self, from: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
         }
-        let balance = self.balance_of(account);
+        let balance = self.balance_of(from);
         if balance < value {
             return Err(PSP22Error::InsufficientBalance);
         }
         if balance == value {
-            self.balances.remove(account);
+            self.balances.remove(from);
         } else {
-            self.balances
-                .insert(account, &(balance.saturating_sub(value)));
+            self.balances.insert(from, &(balance.saturating_sub(value)));
         }
         self.total_supply = self.total_supply.saturating_sub(value);
         Ok(vec![PSP22Event::Transfer {
-            from: Some(account),
+            from: Some(from),
             to: None,
             value,
         }])
