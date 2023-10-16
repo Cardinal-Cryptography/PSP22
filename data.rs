@@ -6,10 +6,10 @@ use ink::{
     storage::Mapping,
 };
 
-// Temporary type for events emitted during operations that change the
-// state of PSP22Data struct.
-// This is meant to be replaced with proper ink! events as soon as the
-// language allows for event definitions outside contracts.
+/// Temporary type for events emitted during operations that change the
+/// state of PSP22Data struct.
+/// This is meant to be replaced with proper ink! events as soon as the
+/// language allows for event definitions outside contracts.
 pub enum PSP22Event {
     Transfer {
         from: Option<AccountId>,
@@ -23,18 +23,18 @@ pub enum PSP22Event {
     },
 }
 
-// A class implementing the internal logic of a PSP22 token.
+/// A class implementing the internal logic of a PSP22 token.
 //
-// Holds the state of all account balances and allowances.
-// Each method of this class corresponds to one type of transaction
-// as defined in the PSP22 standard.
+/// Holds the state of all account balances and allowances.
+/// Each method of this class corresponds to one type of transaction
+/// as defined in the PSP22 standard.
 //
-// Since this code is outside of `ink::contract` macro, the caller's
-// address cannot be obtained automatically. Because of that, all
-// the methods that need to know the caller require an additional argument
-// (compared to transactions defined by the PSP22 standard or the PSP22 trait).
+/// Since this code is outside of `ink::contract` macro, the caller's
+/// address cannot be obtained automatically. Because of that, all
+/// the methods that need to know the caller require an additional argument
+/// (compared to transactions defined by the PSP22 standard or the PSP22 trait).
 //
-// `lib.rs` contains an example implementation of a smart contract using this class.
+/// `lib.rs` contains an example implementation of a smart contract using this class.
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct PSP22Data {
@@ -44,7 +44,7 @@ pub struct PSP22Data {
 }
 
 impl PSP22Data {
-    // Create a token with `supply` balance, initially held by the `creator` account.
+    /// Create a token with `supply` balance, initially held by the `creator` account.
     pub fn new(supply: u128, creator: AccountId) -> PSP22Data {
         let mut data = PSP22Data {
             total_supply: supply,
@@ -67,7 +67,7 @@ impl PSP22Data {
         self.allowances.get((owner, spender)).unwrap_or_default()
     }
 
-    // Transfer `value` tokens from `caller` to `to`.
+    /// Transfer `value` tokens from `caller` to `to`.
     pub fn transfer(
         &mut self,
         caller: AccountId,
@@ -99,8 +99,8 @@ impl PSP22Data {
         }])
     }
 
-    // Transfer `value` tokens from `from` to `to`, but using the allowance
-    // granted be `from` to `caller.
+    /// Transfer `value` tokens from `from` to `to`, but using the allowance
+    /// granted be `from` to `caller.
     pub fn transfer_from(
         &mut self,
         caller: AccountId,
@@ -155,8 +155,8 @@ impl PSP22Data {
         ])
     }
 
-    // Set a new `value` for allowance granted by `owner` to `spender`.
-    // Overwrites the previously granted value.
+    /// Set a new `value` for allowance granted by `owner` to `spender`.
+    /// Overwrites the previously granted value.
     pub fn approve(
         &mut self,
         owner: AccountId,
@@ -178,7 +178,7 @@ impl PSP22Data {
         }])
     }
 
-    // Increase the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Increase the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn increase_allowance(
         &mut self,
         owner: AccountId,
@@ -198,7 +198,7 @@ impl PSP22Data {
         }])
     }
 
-    // Decrease the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Decrease the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn decrease_allowance(
         &mut self,
         owner: AccountId,
@@ -225,7 +225,7 @@ impl PSP22Data {
         }])
     }
 
-    // Mint a `value` of new tokens to `to` account.
+    /// Mint a `value` of new tokens to `to` account.
     pub fn mint(&mut self, to: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
@@ -246,7 +246,7 @@ impl PSP22Data {
         }])
     }
 
-    // Burn `value` tokens from `from` account.
+    /// Burn `value` tokens from `from` account.
     pub fn burn(&mut self, from: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
