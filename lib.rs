@@ -11,22 +11,34 @@ pub use traits::{PSP22Metadata, PSP22};
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
-    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22};
+    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22};
+    use ink::prelude::{string::String, vec::Vec};
 
     #[ink(storage)]
     pub struct Token {
         data: PSP22Data,
+        name: Option<String>,
+        symbol: Option<String>,
+        decimals: u8,
     }
 
     impl Token {
         #[ink(constructor)]
-        pub fn new(supply: u128) -> Self {
+        pub fn new(
+            supply: u128,
+            name: Option<String>,
+            symbol: Option<String>,
+            decimals: u8,
+        ) -> Self {
             Self {
                 data: PSP22Data::new(supply, Self::env().caller()),
+                name,
+                symbol,
+                decimals,
             }
         }
 
-        fn emit_events(&self, events: ink::prelude::vec::Vec<PSP22Event>) {
+        fn emit_events(&self, events: Vec<PSP22Event>) {
             for event in events {
                 match event {
                     PSP22Event::Transfer { from, to, value } => {
@@ -85,7 +97,7 @@ mod token {
             &mut self,
             to: AccountId,
             value: u128,
-            _data: ink::prelude::vec::Vec<u8>,
+            _data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let events = self.data.transfer(self.env().caller(), to, value)?;
             self.emit_events(events);
@@ -98,7 +110,7 @@ mod token {
             from: AccountId,
             to: AccountId,
             value: u128,
-            _data: ink::prelude::vec::Vec<u8>,
+            _data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let events = self
                 .data
@@ -138,6 +150,21 @@ mod token {
                 .decrease_allowance(self.env().caller(), spender, delta_value)?;
             self.emit_events(events);
             Ok(())
+        }
+    }
+
+    impl PSP22Metadata for Token {
+        #[ink(message)]
+        fn token_name(&self) -> Option<String> {
+            self.name.clone()
+        }
+        #[ink(message)]
+        fn token_symbol(&self) -> Option<String> {
+            self.symbol.clone()
+        }
+        #[ink(message)]
+        fn token_decimals(&self) -> u8 {
+            self.decimals
         }
     }
 }
