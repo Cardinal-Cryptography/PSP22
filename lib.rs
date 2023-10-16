@@ -8,6 +8,17 @@ pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
 pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
+// An example code of a smart contract using PSP22Data struct to implement
+// the functionality of PSP22 fungible token.
+//
+// Any contract can be easily enriched to act as PSP22 token by:
+// (1) adding PSP22Data to contract storage
+// (2) properly initializing it
+// (3) defining the correct Transfer and Approval events
+// (4) implementing PSP22 trait based on PSP22Data methods
+// (5) properly emitting resulting events
+//
+// It is a good practice to also implement the optional PSP22Metadata extension (6).
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
@@ -16,7 +27,7 @@ mod token {
 
     #[ink(storage)]
     pub struct Token {
-        data: PSP22Data,
+        data: PSP22Data, // (1)
         name: Option<String>,
         symbol: Option<String>,
         decimals: u8,
@@ -31,13 +42,16 @@ mod token {
             decimals: u8,
         ) -> Self {
             Self {
-                data: PSP22Data::new(supply, Self::env().caller()),
+                data: PSP22Data::new(supply, Self::env().caller()), // (2)
                 name,
                 symbol,
                 decimals,
             }
         }
 
+        // A helper function translating a vector of PSP22Events into the proper
+        // ink event types (defined internally in this contract) and emitting them.
+        // (5)
         fn emit_events(&self, events: Vec<PSP22Event>) {
             for event in events {
                 match event {
@@ -58,6 +72,7 @@ mod token {
         }
     }
 
+    // (3)
     #[ink(event)]
     pub struct Approval {
         #[ink(topic)]
@@ -67,6 +82,7 @@ mod token {
         amount: u128,
     }
 
+    // (3)
     #[ink(event)]
     pub struct Transfer {
         #[ink(topic)]
@@ -76,6 +92,7 @@ mod token {
         value: u128,
     }
 
+    // (4)
     impl PSP22 for Token {
         #[ink(message)]
         fn total_supply(&self) -> u128 {
@@ -153,6 +170,7 @@ mod token {
         }
     }
 
+    // (6)
     impl PSP22Metadata for Token {
         #[ink(message)]
         fn token_name(&self) -> Option<String> {
