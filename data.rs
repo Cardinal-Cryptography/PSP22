@@ -44,7 +44,7 @@ pub struct PSP22Data {
 }
 
 impl PSP22Data {
-    /// Create a token with `supply` balance, initially held by the `creator` account.
+    /// Creates a token with `supply` balance, initially held by the `creator` account.
     pub fn new(supply: u128, creator: AccountId) -> PSP22Data {
         let mut data = PSP22Data {
             total_supply: supply,
@@ -67,7 +67,7 @@ impl PSP22Data {
         self.allowances.get((owner, spender)).unwrap_or_default()
     }
 
-    /// Transfer `value` tokens from `caller` to `to`.
+    /// Transfers `value` tokens from `caller` to `to`.
     pub fn transfer(
         &mut self,
         caller: AccountId,
@@ -99,7 +99,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Transfer `value` tokens from `from` to `to`, but using the allowance
+    /// Transfers `value` tokens from `from` to `to`, but using the allowance
     /// granted be `from` to `caller.
     pub fn transfer_from(
         &mut self,
@@ -155,7 +155,7 @@ impl PSP22Data {
         ])
     }
 
-    /// Set a new `value` for allowance granted by `owner` to `spender`.
+    /// Sets a new `value` for allowance granted by `owner` to `spender`.
     /// Overwrites the previously granted value.
     pub fn approve(
         &mut self,
@@ -178,7 +178,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Increase the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Increases the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn increase_allowance(
         &mut self,
         owner: AccountId,
@@ -198,7 +198,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Decrease the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Decreases the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn decrease_allowance(
         &mut self,
         owner: AccountId,
@@ -225,7 +225,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Mint a `value` of new tokens to `to` account.
+    /// Mints a `value` of new tokens to `to` account.
     pub fn mint(&mut self, to: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
@@ -246,7 +246,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Burn `value` tokens from `from` account.
+    /// Burns `value` tokens from `from` account.
     pub fn burn(&mut self, from: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
