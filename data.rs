@@ -1,13 +1,15 @@
 use crate::PSP22Error;
+use ink::prelude::string::String;
 use ink::{
     prelude::{vec, vec::Vec},
     primitives::AccountId,
     storage::Mapping,
 };
 
-#[cfg(any(feature = "mintable", feature = "burnable"))]
-use ink::prelude::string::String;
-
+/// Temporary type for events emitted during operations that change the
+/// state of PSP22Data struct.
+/// This is meant to be replaced with proper ink! events as soon as the
+/// language allows for event definitions outside contracts.
 pub enum PSP22Event {
     Transfer {
         from: Option<AccountId>,
@@ -21,6 +23,18 @@ pub enum PSP22Event {
     },
 }
 
+/// A class implementing the internal logic of a PSP22 token.
+//
+/// Holds the state of all account balances and allowances.
+/// Each method of this class corresponds to one type of transaction
+/// as defined in the PSP22 standard.
+//
+/// Since this code is outside of `ink::contract` macro, the caller's
+/// address cannot be obtained automatically. Because of that, all
+/// the methods that need to know the caller require an additional argument
+/// (compared to transactions defined by the PSP22 standard or the PSP22 trait).
+//
+/// `lib.rs` contains an example implementation of a smart contract using this class.
 #[ink::storage_item]
 #[derive(Debug, Default)]
 pub struct PSP22Data {
@@ -30,6 +44,7 @@ pub struct PSP22Data {
 }
 
 impl PSP22Data {
+    /// Creates a token with `supply` balance, initially held by the `creator` account.
     pub fn new(supply: u128, creator: AccountId) -> PSP22Data {
         let mut data = PSP22Data {
             total_supply: supply,
@@ -52,6 +67,7 @@ impl PSP22Data {
         self.allowances.get((owner, spender)).unwrap_or_default()
     }
 
+    /// Transfers `value` tokens from `caller` to `to`.
     pub fn transfer(
         &mut self,
         caller: AccountId,
@@ -83,6 +99,8 @@ impl PSP22Data {
         }])
     }
 
+    /// Transfers `value` tokens from `from` to `to`, but using the allowance
+    /// granted be `from` to `caller.
     pub fn transfer_from(
         &mut self,
         caller: AccountId,
@@ -137,6 +155,8 @@ impl PSP22Data {
         ])
     }
 
+    /// Sets a new `value` for allowance granted by `owner` to `spender`.
+    /// Overwrites the previously granted value.
     pub fn approve(
         &mut self,
         owner: AccountId,
@@ -158,6 +178,7 @@ impl PSP22Data {
         }])
     }
 
+    /// Increases the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn increase_allowance(
         &mut self,
         owner: AccountId,
@@ -177,6 +198,7 @@ impl PSP22Data {
         }])
     }
 
+    /// Decreases the allowance granted  by `owner` to `spender` by `delta_value`.
     pub fn decrease_allowance(
         &mut self,
         owner: AccountId,
@@ -203,8 +225,8 @@ impl PSP22Data {
         }])
     }
 
-    #[cfg(feature = "mintable")]
-    pub fn mint(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+    /// Mints a `value` of new tokens to `to` account.
+    pub fn mint(&mut self, to: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
         }
@@ -215,33 +237,32 @@ impl PSP22Data {
                 "Max PSP22 supply exceeded. Max supply limited to 2^128-1.",
             )))?;
         self.total_supply = new_supply;
-        let new_balance = self.balance_of(account).saturating_add(value);
-        self.balances.insert(account, &new_balance);
+        let new_balance = self.balance_of(to).saturating_add(value);
+        self.balances.insert(to, &new_balance);
         Ok(vec![PSP22Event::Transfer {
             from: None,
-            to: Some(account),
+            to: Some(to),
             value,
         }])
     }
 
-    #[cfg(feature = "burnable")]
-    pub fn burn(&mut self, account: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
+    /// Burns `value` tokens from `from` account.
+    pub fn burn(&mut self, from: AccountId, value: u128) -> Result<Vec<PSP22Event>, PSP22Error> {
         if value == 0 {
             return Ok(vec![]);
         }
-        let balance = self.balance_of(account);
+        let balance = self.balance_of(from);
         if balance < value {
             return Err(PSP22Error::InsufficientBalance);
         }
         if balance == value {
-            self.balances.remove(account);
+            self.balances.remove(from);
         } else {
-            self.balances
-                .insert(account, &(balance.saturating_sub(value)));
+            self.balances.insert(from, &(balance.saturating_sub(value)));
         }
         self.total_supply = self.total_supply.saturating_sub(value);
         Ok(vec![PSP22Event::Transfer {
-            from: Some(account),
+            from: Some(from),
             to: None,
             value,
         }])
