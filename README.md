@@ -13,7 +13,13 @@ psp22 = { git = "https://github.com/Cardinal-Cryptography/PSP22.git", default-fe
 
 The contents of this repository can be used in following ways:
 
-### 1. Cross contract calling with traits
+### 1. Ready to use contract
+
+The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents with [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
+```
+$ cargo contract build --release --features "contract"
+```
+### 2. Cross contract calling with traits
 
 The `PSP22` trait contains all the methods defined in the PSP22 standard. The trait can be used together with ink!'s [`contract_ref`][contract_ref] macro to allow for convenient cross-contract calling.
 
@@ -31,12 +37,6 @@ token.transfer(recipient, value); // returns Result<(), PSP22Error>
 
 The same method can be used with other traits (`PSP22Metadata`, `PSP22Burnable`, `PSP22Mintable`) defined in this crate. See the contents of [`traits.rs`][traits].
 
-### 2. Ready to use contract
-
-The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents with [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
-```
-$ cargo contract build --release --features "contract"
-```
 
 ### 3. Custom implementation of PSP22 logic with `PSP22Data`
 
