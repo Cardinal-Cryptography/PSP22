@@ -140,6 +140,8 @@ pub trait PSP22Metadata {
 pub trait PSP22Burnable {
     /// Burns `value` tokens from the senders account.
     ///
+    /// The selector for this message is `0x7a9da510` (first 4 bytes of `blake2b_256("PSP22Burnable::burn")`).
+    ///
     /// # Events
     ///
     /// On success a `Transfer` event is emitted with `None` recipient.
@@ -156,6 +158,8 @@ pub trait PSP22Burnable {
 #[ink::trait_definition]
 pub trait PSP22Mintable {
     /// Mints `value` tokens to the senders account.
+    ///
+    /// The selector for this message is `0xfc3c75d4` (first 4 bytes of `blake2b_256("PSP22Mintable::mint")`).
     ///
     /// # Events
     ///
