@@ -189,6 +189,12 @@ mod token {
 
     #[cfg(test)]
     mod tests {
-        crate::tests!(Token);
+        use super::Token;
+
+        fn constructor(supply: u128) -> Token {
+            Token::new(supply, None, None, 0)
+        }
+
+        crate::tests!(Token, constructor);
     }
 }

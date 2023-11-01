@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! tests {
-    ($contract:ident) => {
+    ($contract:ident, $constructor:path) => {
         use super::*;
         use ink::env::{test::*, DefaultEnvironment as E};
 
@@ -42,7 +42,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let supply = 1000;
-            let token = $contract::new(supply, None, None, 0);
+            let token = $constructor(supply);
 
             assert_eq!(token.total_supply(), supply);
             assert_eq!(token.balance_of(acc.alice), supply);
@@ -57,7 +57,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 100);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert_eq!(token.total_supply(), supply);
             assert_eq!(token.balance_of(acc.alice), supply);
@@ -75,7 +75,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 100);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, value, vec![]).is_ok());
             assert!(token.transfer(acc.bob, 2 * value, vec![]).is_ok());
@@ -90,7 +90,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 100);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, value, vec![]).is_ok());
             set_caller::<E>(acc.bob);
@@ -106,7 +106,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let supply = 2137;
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, supply, vec![]).is_ok());
             set_caller::<E>(acc.bob);
@@ -125,7 +125,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 100);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, value, vec![]).is_ok());
             let events = decode_events();
@@ -138,7 +138,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 0);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, value, vec![]).is_ok());
             let events = decode_events();
@@ -150,7 +150,7 @@ macro_rules! tests {
             let acc = default_accounts::<E>();
             set_caller::<E>(acc.alice);
             let (supply, value) = (1000, 100);
-            let mut token = $contract::new(supply, None, None, 0);
+            let mut token = $constructor(supply);
 
             assert!(token.transfer(acc.bob, value, vec![]).is_ok());
             assert!(token.transfer(acc.bob, 2 * value, vec![]).is_ok());
