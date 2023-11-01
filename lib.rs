@@ -2,6 +2,7 @@
 
 mod data;
 mod errors;
+mod testing;
 mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
@@ -184,5 +185,10 @@ mod token {
         fn token_decimals(&self) -> u8 {
             self.decimals
         }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        crate::tests!(Token);
     }
 }
