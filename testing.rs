@@ -1,3 +1,8 @@
+/// Inserts a suite of ink! unit tests intended for a contract implementing PSP22 trait.
+/// `$contract` argument should be the name of the contract struct.
+/// `$constructor` argument should be the name of a function, which initializes `$contract`
+/// with the given total supply of tokens.
+/// This macro should be invoked inside `#[ink::contract]` module.
 #[macro_export]
 macro_rules! tests {
     ($contract:ident, $constructor:path) => {

@@ -19,7 +19,8 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 // (4) implementing PSP22 trait based on PSP22Data methods
 // (5) properly emitting resulting events
 //
-// It is a good practice to also implement the optional PSP22Metadata extension (6).
+// It is a good practice to also implement the optional PSP22Metadata extension (6)
+// and include unit tests (7).
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
@@ -187,14 +188,15 @@ mod token {
         }
     }
 
+    // (7)
     #[cfg(test)]
     mod tests {
         use super::Token;
 
-        fn constructor(supply: u128) -> Token {
+        fn create_token(supply: u128) -> Token {
             Token::new(supply, None, None, 0)
         }
 
-        crate::tests!(Token, constructor);
+        crate::tests!(Token, create_token);
     }
 }
