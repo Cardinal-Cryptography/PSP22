@@ -64,17 +64,12 @@ mod mycontract {
     #[cfg(test)]
     mod tests {
         use super::MyContract;
-
-        fn new_token(amount: u128) -> MyContract {
-            MyContract::new(..., amount, ...)
-        }
-
-        psp22::tests!(MyContract, new_token);
+        psp22::tests!(MyContract, (|total_supply| MyContract::new(..., total_supply, ...)));
     }
 
 }
 ```
-As you can see in the code snippet above, the `psp22::tests!` macro takes two arguments. The first one should be a name of a struct which implements `PSP22` trait (usually your contract storage struct). The second argument should be a token constructor for a given total supply. In other words, the second argument should be a name of a function that takes a single `u128` argument and returns the PSP22 struct initialized to have that amount as total supply (with all tokens initially assigned to the caller's account).
+As you can see in the code snippet above, the `psp22::tests!` macro takes two arguments. The first one should be a name of a struct which implements `PSP22` trait (usually your contract storage struct). The second argument should be a token constructor for a given total supply. In other words, the second argument should be an expression that takes a single `u128` argument and returns the PSP22 struct initialized to have that amount as total supply (with all tokens initially assigned to the caller's account).
 
 ### 5. Burnable and Mintable extensions
 

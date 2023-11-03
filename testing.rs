@@ -5,7 +5,7 @@
 /// This macro should be invoked inside `#[ink::contract]` module.
 #[macro_export]
 macro_rules! tests {
-    ($contract:ident, $constructor:path) => {
+    ($contract:ident, $constructor:expr) => {
         use super::*;
         use ink::env::{test::*, DefaultEnvironment as E};
 
