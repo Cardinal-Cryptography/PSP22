@@ -2,6 +2,7 @@
 
 mod data;
 mod errors;
+mod testing;
 mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
@@ -18,7 +19,8 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 // (4) implementing PSP22 trait based on PSP22Data methods
 // (5) properly emitting resulting events
 //
-// It is a good practice to also implement the optional PSP22Metadata extension (6).
+// It is a good practice to also implement the optional PSP22Metadata extension (6)
+// and include unit tests (7).
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
@@ -184,5 +186,11 @@ mod token {
         fn token_decimals(&self) -> u8 {
             self.decimals
         }
+    }
+
+    // (7)
+    #[cfg(test)]
+    mod tests {
+        crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
     }
 }
