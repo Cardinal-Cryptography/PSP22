@@ -63,7 +63,7 @@ jobs:
           command: install
           args: --locked cargo-contract
 
-      - name: Build contact
+      - name: Build contract
         uses: actions-rs/cargo@v1
         with:
           command: contract
