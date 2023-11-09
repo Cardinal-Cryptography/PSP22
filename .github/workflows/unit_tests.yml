@@ -26,7 +26,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all
+          args: --all -- --check
 
       - name: Run clippy
         uses: actions-rs/cargo@v1
