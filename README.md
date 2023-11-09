@@ -32,7 +32,7 @@ let mut token: contract_ref!(PSP22) = other_address.into();
 
 // Now `token` has all the PSP22 methods
 let balance = token.balance_of(some_account);
-token.transfer(recipient, value); // returns Result<(), PSP22Error>
+token.transfer(recipient, value, vec![]); // returns Result<(), PSP22Error>
 ```
 
 The same method can be used with other traits (`PSP22Metadata`, `PSP22Burnable`, `PSP22Mintable`) defined in this crate. See the contents of [`traits.rs`][traits].
