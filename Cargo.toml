@@ -1,8 +1,14 @@
 [package]
 name = "psp22"
 version = "0.2.0"
-authors = ["Hans <michal.handzlik@cardinals.cc>"]
 edition = "2021"
+authors = ["Cardinal"]
+homepage = "https://github.com/Cardinal-Cryptography/PSP22"
+repository = "https://github.com/Cardinal-Cryptography/PSP"
+license-file = "LICENSE.md"
+readme = "README.md"
+description = "Minimal implementation of PSP22 token standard in pure ink!"
+exclude = [ ".github/*" ]
 
 [dependencies]
 ink = { version = "4.3", default-features = false }
