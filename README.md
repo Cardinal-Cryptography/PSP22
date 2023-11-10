@@ -2,20 +2,20 @@
 
 PSP22 is a fungible token standard for WebAssembly smart contracts running on blockchains based on the [Substrate][substrate] framework. It is an equivalent of Ethereum's [ERC-20][erc20]. The definition of the PSP22 standard can be found [here][psp22].
 
-This repository contains a simple, minimal implementation of the PSP22 token in [ink!][ink] programming language.
+This repository contains a simple, minimal implementation of the PSP22 token in [ink!][ink] smart contract programming language (EDSL based on Rust).
 
 ## How to use this repository
 
-To use this crate please add the following line in your `Cargo.toml`:
+To use this crate please add the following line in your project's `Cargo.toml`:
 ```
-psp22 = { git = "https://github.com/Cardinal-Cryptography/PSP22.git", default-features = false }
+psp22 = { version = "0.2", default-features = false }
 ```
 
 The contents of this repository can be used in following ways:
 
 ### 1. Ready to use contract
 
-The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents with [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
+The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents using [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
 ```
 $ cargo contract build --release --features "contract"
 ```
@@ -26,16 +26,17 @@ The `PSP22` trait contains all the methods defined in the PSP22 standard. The tr
 In your contract, if you would like to make a call to some other contract implementing the PSP22 standard, all you need to do is:
 ```
 use ink::contract_ref;
+use ink::prelude::vec::vec;
 use psp22::PSP22;
 
-let mut token: contract_ref!(PSP22) = other_address.into();
+let mut token: contract_ref!(PSP22) = other_contract_address.into();
 
-// Now `token` has all the PSP22 methods
+// Now `token` has all PSP22 methods
 let balance = token.balance_of(some_account);
 token.transfer(recipient, value, vec![]); // returns Result<(), PSP22Error>
 ```
 
-The same method can be used with other traits (`PSP22Metadata`, `PSP22Burnable`, `PSP22Mintable`) defined in this crate. See the contents of [`traits.rs`][traits].
+The same method can be used with other traits (`PSP22Metadata`, `PSP22Burnable`, `PSP22Mintable`) defined in this crate. See the contents of [`traits.rs`][traits] for details.
 
 ### 3. Custom implementation of PSP22 logic with `PSP22Data`
 
@@ -78,7 +79,6 @@ The `PSP22Data` class contains also `burn` and `mint` methods, which can be used
 impl PSP22Burnable for Token {
     #[ink(message)]
     fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
-        // Check if the caller is allowed to burn!
         let events = self.data.burn(self.env().caller(), value)?;
         self.emit_events(events);
         Ok(())
