@@ -1,11 +1,12 @@
 [package]
 name = "psp22"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Cardinal"]
 homepage = "https://github.com/Cardinal-Cryptography/PSP22"
 repository = "https://github.com/Cardinal-Cryptography/PSP22"
-license-file = "LICENSE.md"
+license = "Apache-2.0"
+license-file = "LICENSE"
 readme = "README.md"
 description = "Minimal implementation of PSP22 token standard in pure ink!"
 exclude = [ ".github/*" ]
