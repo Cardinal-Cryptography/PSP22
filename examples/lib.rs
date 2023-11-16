@@ -150,11 +150,11 @@ mod token {
 
     impl PSP22Mintable for Token {
         #[ink(message)]
-        fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+        fn mint(&mut self, amount: Balance) -> Result<(), PSP22Error> {
             if self.env().caller() != self.owner.unwrap() {
                 return Err(Custom(String::from("OnlyOwnerAllowed")));
             }
-            let events = self.data.mint(account, amount)?;
+            let events = self.data.mint(self.env().caller(), amount)?;
             self.emit_events(events);
             Ok(())
         }
