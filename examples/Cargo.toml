@@ -22,6 +22,7 @@ std = [
     "ink/std",
     "scale/std",
     "scale-info/std",
+    "psp22/std"
 ]
 
 ink-as-dependency = []
