@@ -78,8 +78,8 @@ The `PSP22Data` class contains also `burn` and `mint` methods, which can be used
 ```
 impl PSP22Burnable for Token {
     #[ink(message)]
-    fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
-        let events = self.data.burn(self.env().caller(), value)?;
+    fn burn(&mut self, account: AccountId, value: u128) -> Result<(), PSP22Error> {
+        let events = self.data.burn(account, value)?;
         self.emit_events(events);
         Ok(())
     }
@@ -117,11 +117,11 @@ impl Token {
 
 impl PSP22Burnable for Token {
     #[ink(message)]
-    fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
+    fn burn(&mut self, account: AccountId, value: u128) -> Result<(), PSP22Error> {
         if self.env().caller() != self.owner {
             return PSP22Error::Custom(String::from("Only owner can burn"));
         }
-        let events = self.data.burn(self.env().caller(), value)?;
+        let events = self.data.burn(account, value)?;
         self.emit_events(events);
         Ok(())
     }
