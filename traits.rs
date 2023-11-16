@@ -152,7 +152,7 @@ pub trait PSP22Burnable {
     ///
     /// Reverts with `InsufficientBalance` if the `value` exceeds the caller's balance.
     #[ink(message)]
-    fn burn(&mut self, value: u128) -> Result<(), PSP22Error>;
+    fn burn(&mut self, account: AccountId, value: u128) -> Result<(), PSP22Error>;
 }
 
 #[ink::trait_definition]
@@ -172,5 +172,5 @@ pub trait PSP22Mintable {
     /// Reverts with `Custom (max supply exceeded)` if the total supply increased by
     /// `value` exceeds maximal value of `u128` type.
     #[ink(message)]
-    fn mint(&mut self, value: u128) -> Result<(), PSP22Error>;
+    fn mint(&mut self, account: AccountId, value: u128) -> Result<(), PSP22Error>;
 }
