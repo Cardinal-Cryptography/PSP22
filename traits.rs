@@ -138,9 +138,24 @@ pub trait PSP22Metadata {
 
 #[ink::trait_definition]
 pub trait PSP22Burnable {
-    /// Burns `value` tokens from the senders account.
+    /// Burns `value` tokens from the senders account, reducing the total supply
     ///
     /// The selector for this message is `0x7a9da510` (first 4 bytes of `blake2b_256("PSP22Burnable::burn")`).
+    ///
+    /// # Events
+    ///
+    /// On success a `Transfer` event is emitted with `None` recipient.
+    ///
+    /// No-op if `amount` is zero, returns success and no events are emitted.
+    ///
+    /// # Errors
+    ///
+    /// Reverts with `InsufficientBalance` if the `amount` exceeds the caller's balance.
+    #[ink(message)]
+    fn burn(&mut self, value: u128) -> Result<(), PSP22Error>;
+
+    /// Burns `value` tokens from account, reducing the total supply. Value is then deducted from the caller’s allowance.
+    /// The selector for this message is `0xTODO` (first 4 bytes of `blake2b_256("PSP22Burnable::burn_from")`).
     ///
     /// # Events
     ///
@@ -152,12 +167,12 @@ pub trait PSP22Burnable {
     ///
     /// Reverts with `InsufficientBalance` if the `value` exceeds the caller's balance.
     #[ink(message)]
-    fn burn(&mut self, value: u128) -> Result<(), PSP22Error>;
+    fn burn_from(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error>;
 }
 
 #[ink::trait_definition]
 pub trait PSP22Mintable {
-    /// Mints `value` tokens to the senders account.
+    /// Mints `value` tokens to the `to` account.
     ///
     /// The selector for this message is `0xfc3c75d4` (first 4 bytes of `blake2b_256("PSP22Mintable::mint")`).
     ///
@@ -172,5 +187,5 @@ pub trait PSP22Mintable {
     /// Reverts with `Custom (max supply exceeded)` if the total supply increased by
     /// `value` exceeds maximal value of `u128` type.
     #[ink(message)]
-    fn mint(&mut self, value: u128) -> Result<(), PSP22Error>;
+    fn mint(&mut self, to: AccountId, value: u128) -> Result<(), PSP22Error>;
 }
