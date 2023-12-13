@@ -196,17 +196,35 @@ pub trait HasPSP22Data {
 }
 
 pub trait PSP22Hooks {
+    /// Checks whether the caller has enough allowance to burn `value` amount of tokens from the `owner`
+    ///
+    /// # Errors
+    ///
+    /// Reverts with `InsufficientAllowance` error if value exceed the caller's allowance
     fn before_burn(
         &self,
         caller: AccountId,
-        _from: AccountId,
-        _value: u128,
+        owner: AccountId,
+        value: u128,
     ) -> Result<(), PSP22Error>;
 
+    /// Decreases the allowance granted by the `owner` to the `caller` by the `value`.
+    ///
+    /// A no-op if the caller and the `spender` address is the same or if `value` is zero, in which case
+    /// returns success and no events are emitted.
+    ///
+    /// # Events
+    ///
+    /// An `Approval` event with the new allowance amount is emitted.
+    ///
+    ///
+    /// # Errors
+    ///
+    /// Reverts with `InsufficientAllowance` the `value` exceeds the allowance granted by the `owner` to the `caller`.
     fn after_burn(
         &mut self,
         caller: AccountId,
-        _from: AccountId,
-        _value: u128,
+        owner: AccountId,
+        value: u128,
     ) -> Result<(), PSP22Error>;
 }

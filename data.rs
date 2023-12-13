@@ -48,25 +48,26 @@ impl<T> PSP22Hooks for T
 where
     T: HasPSP22Data,
 {
+    /// Checks whether the caller has enough allowance to burn `value` amount of tokens from the `owner`
     fn before_burn(
         &self,
         caller: AccountId,
-        from: AccountId,
+        owner: AccountId,
         value: u128,
     ) -> Result<(), PSP22Error> {
-        if self.data().allowance(from, caller) < value {
+        if self.data().allowance(owner, caller) < value {
             return Err(PSP22Error::InsufficientAllowance);
         }
         Ok(())
     }
-
+    /// Reduces the caller's allowance on behlaf of the `owner` by the burnt `value` amount of tokens
     fn after_burn(
         &mut self,
         caller: AccountId,
-        from: AccountId,
+        owner: AccountId,
         value: u128,
     ) -> Result<(), PSP22Error> {
-        self.data_mut().decrease_allowance(from, caller, value)?;
+        self.data_mut().decrease_allowance(owner, caller, value)?;
         Ok(())
     }
 }
@@ -206,7 +207,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Increases the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Increases the allowance granted by `owner` to `spender` by `delta_value`.
     pub fn increase_allowance(
         &mut self,
         owner: AccountId,
@@ -226,7 +227,7 @@ impl PSP22Data {
         }])
     }
 
-    /// Decreases the allowance granted  by `owner` to `spender` by `delta_value`.
+    /// Decreases the allowance granted by `owner` to `spender` by `delta_value`.
     pub fn decrease_allowance(
         &mut self,
         owner: AccountId,
