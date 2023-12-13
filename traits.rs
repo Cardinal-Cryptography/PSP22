@@ -3,7 +3,7 @@ use ink::{
     primitives::AccountId,
 };
 
-use crate::errors::PSP22Error;
+use crate::{errors::PSP22Error, PSP22Data};
 
 #[ink::trait_definition]
 pub trait PSP22 {
@@ -188,4 +188,25 @@ pub trait PSP22Mintable {
     /// `value` exceeds maximal value of `u128` type.
     #[ink(message)]
     fn mint(&mut self, to: AccountId, value: u128) -> Result<(), PSP22Error>;
+}
+
+pub trait HasPSP22Data {
+    fn data(&self) -> &PSP22Data;
+    fn data_mut(&mut self) -> &mut PSP22Data;
+}
+
+pub trait PSP22Hooks {
+    fn before_burn(
+        &self,
+        caller: AccountId,
+        _from: AccountId,
+        _value: u128,
+    ) -> Result<(), PSP22Error>;
+
+    fn after_burn(
+        &mut self,
+        caller: AccountId,
+        _from: AccountId,
+        _value: u128,
+    ) -> Result<(), PSP22Error>;
 }

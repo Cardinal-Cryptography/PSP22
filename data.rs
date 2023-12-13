@@ -1,3 +1,4 @@
+use crate::traits::{HasPSP22Data, PSP22Hooks};
 use crate::PSP22Error;
 use ink::prelude::string::String;
 use ink::{
@@ -41,6 +42,33 @@ pub struct PSP22Data {
     total_supply: u128,
     balances: Mapping<AccountId, u128>,
     allowances: Mapping<(AccountId, AccountId), u128>,
+}
+
+impl<T> PSP22Hooks for T
+where
+    T: HasPSP22Data,
+{
+    fn before_burn(
+        &self,
+        caller: AccountId,
+        from: AccountId,
+        value: u128,
+    ) -> Result<(), PSP22Error> {
+        if self.data().allowance(from, caller) < value {
+            return Err(PSP22Error::InsufficientAllowance);
+        }
+        Ok(())
+    }
+
+    fn after_burn(
+        &mut self,
+        caller: AccountId,
+        from: AccountId,
+        value: u128,
+    ) -> Result<(), PSP22Error> {
+        self.data_mut().decrease_allowance(from, caller, value)?;
+        Ok(())
+    }
 }
 
 impl PSP22Data {

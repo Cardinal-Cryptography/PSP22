@@ -7,7 +7,7 @@ mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
-pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
+pub use traits::{HasPSP22Data, PSP22Burnable, PSP22Hooks, PSP22Metadata, PSP22Mintable, PSP22};
 
 // An example code of a smart contract using PSP22Data struct to implement
 // the functionality of PSP22 fungible token.
