@@ -74,7 +74,7 @@ As you can see in the code snippet above, the `psp22::tests!` macro takes two ar
 
 ### 5. Burnable and Mintable extensions
 
-The `PSP22Data` class contains also `burn` and `mint` methods, which can be used to implement `PSP22Burnable` and `PSP22Mintable` extensions and make your token burnable and/or mintable. An example implementation follows the same pattern as for the base trait:
+The `PSP22Data` class contains also `burn`, `burn_from` and `mint` methods, which can be used to implement `PSP22Burnable` and `PSP22Mintable` extensions and make your token burnable and/or mintable. An example implementation follows the same pattern as for the base trait:
 ```
 impl PSP22Burnable for Token {
     #[ink(message)]
@@ -83,7 +83,13 @@ impl PSP22Burnable for Token {
         self.emit_events(events);
         Ok(())
     }
-}
+
+    #[ink(message)]
+    fn burn_from(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
+        let events = self.data.burn(from, value)?;
+        self.emit_events(events);
+        Ok(())
+    }
 ```
 Please note that `PSP22Data` `burn` and `mint` methods do not enforce any form of access control. It's probably not a good idea to have a token which can be minted and burned by anyone anytime. When implementing Burnable and Mintable extensions, please make sure that their usage is restricted according to your project's business logic. For example:
 ```
@@ -122,6 +128,57 @@ impl PSP22Burnable for Token {
             return PSP22Error::Custom(String::from("Only owner can burn"));
         }
         let events = self.data.burn(self.env().caller(), value)?;
+        self.emit_events(events);
+        Ok(())
+    }
+
+    #[ink(message)]
+    fn burn_from(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
+        let caller = self.env().caller();
+        if caller != self.owner {
+            return PSP22Error::Custom(String::from("Only owner can burn"));
+        }
+        let events = self.data.burn(from, value)?;
+        self.emit_events(events);
+        Ok(())
+    }
+
+}
+```
+
+By default the `burn_from` method allows for burning tokens from any owners account.
+If you want to restrict the callers to burn tokens from the owner account only up to a certain allowance amount, you can do so by importing  the `PSP22Hooks` blanket trait, which provides `before_burn` and `after_burn` hooks to any token that implements a simple `HasPSP22Data` trait.
+These methods will respectively check the alowance give to the caller by the owner and decrese it by the burnt amount.
+Example:
+
+```
+impl HasPSP22Data for Token {
+    fn data(&self) -> &PSP22Data {
+        &self.data
+    }
+    fn data_mut(&mut self) -> &mut PSP22Data {
+        &mut self.data
+    }
+}
+
+impl PSP22Burnable for Token {
+    #[ink(message)]
+    fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
+    ...
+    }
+
+    #[ink(message)]
+    fn burn_from(&mut self, from: AccountId, value: u128) -> Result<(), PSP22Error> {
+        let caller = self.env().caller();
+
+        // before
+        self.before_burn(caller, from, value)?;
+
+        let events = self.data.burn(from, value)?;
+
+        // after
+        self.after_burn(caller, from, value)?;
+
         self.emit_events(events);
         Ok(())
     }
