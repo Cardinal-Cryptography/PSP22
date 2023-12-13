@@ -185,7 +185,6 @@ impl PSP22Burnable for Token {
 }
 ```
 
-
 [lib]: ./lib.rs
 [traits]: ./traits.rs
 [ink]: https://use.ink

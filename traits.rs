@@ -155,7 +155,7 @@ pub trait PSP22Burnable {
     fn burn(&mut self, value: u128) -> Result<(), PSP22Error>;
 
     /// Burns `value` tokens from account, reducing the total supply. Value is then deducted from the caller’s allowance.
-    /// The selector for this message is `0xTODO` (first 4 bytes of `blake2b_256("PSP22Burnable::burn_from")`).
+    /// The selector for this message is `0x1d3e58b5` (first 4 bytes of `blake2b_256("PSP22Burnable::burn_from")`).
     ///
     /// # Events
     ///
