@@ -16,3 +16,12 @@ pub enum PSP22Error {
     /// Returned if a safe transfer check failed [deprecated].
     SafeTransferCheckFailed(String),
 }
+
+/// Errors related to ownership operations.
+///
+/// This enum is used for managing errors that occur in ownership-related
+/// functionalities.
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum OwnableError {
+}

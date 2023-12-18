@@ -5,6 +5,8 @@ use ink::{
     primitives::AccountId,
     storage::Mapping,
 };
+use ink::env::call::{build_call, ExecutionInput, Selector};
+use ink::env::DefaultEnvironment;
 
 /// Temporary type for events emitted during operations that change the
 /// state of PSP22Data struct.
@@ -267,4 +269,115 @@ impl PSP22Data {
             value,
         }])
     }
+
+    /// Burns `value` tokens from `from` account.
+    pub fn burn_from(&mut self,
+                     caller: AccountId,
+                     from: AccountId,
+                     value: u128
+    ) -> Result<Vec<PSP22Event>, PSP22Error> {
+        if value == 0 {
+            return Ok(vec![]);
+        }
+        let allowance = self.allowance(from, caller);
+        if allowance < value {
+            return Err(PSP22Error::InsufficientAllowance);
+        }
+        let balance = self.balance_of(from);
+        if balance < value {
+            return Err(PSP22Error::InsufficientBalance);
+        }
+
+        if allowance == value {
+            self.allowances.remove((from, caller));
+        } else {
+            self.allowances
+                .insert((from, caller), &(allowance.saturating_sub(value)));
+        }
+        if balance == value {
+            self.balances.remove(from);
+        } else {
+            self.balances.insert(from, &(balance.saturating_sub(value)));
+        }
+        self.total_supply = self.total_supply.saturating_sub(value);
+        Ok(vec![PSP22Event::Transfer {
+            from: Some(from),
+            to: None,
+            value,
+        }])
+    }
+
+    /// Deposits a specified amount of tokens from the `underlying` token contract to this contract.
+    ///
+    /// This method transfers tokens from `sender` to the `contract` account (the current contract),
+    /// using the `underlying` token's `transfer_from` method. It's typically used in wrapper implementations.
+    ///
+    /// # Arguments
+    ///
+    /// * `underlying` - The AccountId of the underlying token contract.
+    /// * `sender` - The AccountId of the sender who is depositing tokens.
+    /// * `contract` - The AccountId of this contract, which will receive the tokens.
+    /// * `value` - The amount of tokens to be deposited.
+    ///
+    /// # Returns
+    ///
+    /// A `Result<(), PSP22Error>` indicating the success or failure of the operation.
+    pub fn deposit(&mut self,
+                   underlying: AccountId,
+                   sender: AccountId,
+                   contract: AccountId,
+                   value: u128
+    ) -> Result<(), PSP22Error> {
+        pub const TRANSFER_FROM_SELECTOR: [u8; 4] = [84, 179, 199, 110];
+
+        build_call::<DefaultEnvironment>()
+            .call(underlying)
+            .gas_limit(0)
+            .transferred_value(0)
+            .exec_input(
+                ExecutionInput::new(Selector::new(TRANSFER_FROM_SELECTOR))
+                    .push_arg(sender)
+                    .push_arg(contract)
+                    .push_arg(value)
+                    .push_arg(Vec::<u8>::new())
+            )
+            .returns::<Result<(), PSP22Error>>()
+            .invoke()
+    }
+
+    /// Withdraws a specified amount of tokens from this contract to a specified account.
+    ///
+    /// This method transfers tokens from this contract to the `account` specified,
+    /// using the `underlying` token's `transfer` method. It's typically used in wrapper implementations.
+    ///
+    /// # Arguments
+    ///
+    /// * `underlying` - The AccountId of the underlying token contract.
+    /// * `account` - The AccountId where tokens will be withdrawn to.
+    /// * `value` - The amount of tokens to be withdrawn.
+    ///
+    /// # Returns
+    ///
+    /// A `Result<(), PSP22Error>` indicating the success or failure of the operation.
+    pub fn withdraw(&mut self,
+                    underlying: AccountId,
+                    account: AccountId,
+                    value: u128
+    ) -> Result<(), PSP22Error> {
+        pub const TRANSFER_SELECTOR: [u8; 4] = [219, 32, 249, 245];
+
+        build_call::<DefaultEnvironment>()
+            .call(underlying)
+            .gas_limit(0)
+            .transferred_value(0)
+            .exec_input(
+                ExecutionInput::new(Selector::new(TRANSFER_SELECTOR))
+                    .push_arg(account)
+                    .push_arg(value)
+                    .push_arg(Vec::<u8>::new())
+            )
+            .returns::<Result<(), PSP22Error>>()
+            .invoke()
+    }
+
 }
