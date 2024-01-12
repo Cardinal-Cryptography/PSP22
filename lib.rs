@@ -24,7 +24,9 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
-    use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22Mintable, PSP22};
+    use crate::{
+        PSP22Burnable, PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22Mintable, PSP22,
+    };
     use ink::prelude::{string::String, vec::Vec};
 
     #[ink(storage)]
@@ -192,6 +194,15 @@ mod token {
         #[ink(message)]
         fn mint(&mut self, value: u128) -> Result<(), PSP22Error> {
             let events = self.data.mint(self.env().caller(), value)?;
+            self.emit_events(events);
+            Ok(())
+        }
+    }
+
+    impl PSP22Burnable for Token {
+        #[ink(message)]
+        fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
+            let events = self.data.burn(self.env().caller(), value)?;
             self.emit_events(events);
             Ok(())
         }

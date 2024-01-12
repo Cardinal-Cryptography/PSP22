@@ -44,6 +44,19 @@ macro_rules! tests {
                 }
             }
 
+            fn assert_burn(event: &Event, from_: AccountId, value_: u128) {
+                if let Event::Transfer(Transfer { from, to, value }) = event {
+                    assert_eq!(*from, Some(from_), "Burn Transfer event: 'from' mismatch");
+                    assert_eq!(
+                        *to, None,
+                        "Burn Transfer event should produce event with to = None"
+                    );
+                    assert_eq!(*value, value_, "Mint Transfer event: 'value' mismatch");
+                } else {
+                    panic!("Event is not Transfer")
+                }
+            }
+
             // Asserts if the given event is a Approval with particular owner_, spender_ and amount_
             fn assert_approval(
                 event: &Event,
@@ -666,6 +679,36 @@ macro_rules! tests {
                 let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_mint(&events[0], acc.alice, delta);
+            }
+
+            #[ink::test]
+            fn burn_zero_is_no_op() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let supply = 1000;
+                let mut token = $constructor(supply);
+                let start = recorded_events().count();
+                assert!(token.burn(0).is_ok());
+                assert_eq!(token.balance_of(acc.alice), supply);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 0);
+            }
+
+            #[ink::test]
+            fn burn_works() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let supply = 1000;
+                let mut token = $constructor(supply);
+                let start = recorded_events().count();
+                let delta = 100;
+                assert!(token.burn(100).is_ok());
+                assert_eq!(token.balance_of(acc.alice), supply - delta);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 1);
+                assert_burn(&events[0], acc.alice, delta);
             }
         }
     };
