@@ -31,6 +31,19 @@ macro_rules! tests {
                 }
             }
 
+            fn assert_mint(event: &Event, to_: AccountId, value_: u128) {
+                if let Event::Transfer(Transfer { from, to, value }) = event {
+                    assert_eq!(
+                        *from, None,
+                        "Mint should emit Transfer event with from = None"
+                    );
+                    assert_eq!(*to, Some(to_), "Mint Transfer event: 'to' mismatch");
+                    assert_eq!(*value, value_, "Mint Transfer event: 'value' mismatch");
+                } else {
+                    panic!("Event is not Transfer")
+                }
+            }
+
             // Asserts if the given event is a Approval with particular owner_, spender_ and amount_
             fn assert_approval(
                 event: &Event,
@@ -623,6 +636,36 @@ macro_rules! tests {
 
                 let events = decode_events(start);
                 assert_eq!(events.len(), 0);
+            }
+
+            #[ink::test]
+            fn mint_zero_is_no_op() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let supply = 1000;
+                let mut token = $constructor(supply);
+                let start = recorded_events().count();
+                assert!(token.mint(0).is_ok());
+                assert_eq!(token.balance_of(acc.alice), supply);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 0);
+            }
+
+            #[ink::test]
+            fn mint_works() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let supply = 1000;
+                let mut token = $constructor(supply);
+                let start = recorded_events().count();
+                let delta = 100;
+                assert!(token.mint(100).is_ok());
+                assert_eq!(token.balance_of(acc.alice), supply + delta);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 1);
+                assert_mint(&events[0], acc.alice, delta);
             }
         }
     };
