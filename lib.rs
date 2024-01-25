@@ -164,6 +164,7 @@ mod token {
     // (6)
     #[cfg(test)]
     mod tests {
+        use super::Token;
         crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
     }
 }
