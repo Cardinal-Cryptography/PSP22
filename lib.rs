@@ -43,12 +43,15 @@ mod token {
             symbol: Option<String>,
             decimals: u8,
         ) -> Self {
-            Self {
-                data: PSP22Data::new(supply, Self::env().caller()), // (2)
+            let (data, events) = PSP22Data::new(supply, Self::env().caller()); // (2)
+            let contract = Self {
+                data,
                 name,
                 symbol,
                 decimals,
-            }
+            };
+            contract.emit_events(events);
+            contract
         }
 
         // A helper function translating a vector of PSP22Events into the proper
