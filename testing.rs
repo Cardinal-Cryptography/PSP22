@@ -21,10 +21,15 @@ macro_rules! tests {
             }
 
             // Asserts if the given event is a Transfer with particular from_, to_ and value_
-            fn assert_transfer(event: &Event, from_: AccountId, to_: AccountId, value_: u128) {
+            fn assert_transfer(
+                event: &Event,
+                from_: Option<AccountId>,
+                to_: Option<AccountId>,
+                value_: u128,
+            ) {
                 if let Event::Transfer(Transfer { from, to, value }) = event {
-                    assert_eq!(*from, Some(from_), "Transfer event: 'from' mismatch");
-                    assert_eq!(*to, Some(to_), "Transfer event: 'to' mismatch");
+                    assert_eq!(*from, from_, "Transfer event: 'from' mismatch");
+                    assert_eq!(*to, to_, "Transfer event: 'to' mismatch");
                     assert_eq!(*value, value_, "Transfer event: 'value' mismatch");
                 } else {
                     panic!("Event is not Transfer")
@@ -146,7 +151,20 @@ macro_rules! tests {
                 assert!(token.transfer(acc.bob, value, vec![]).is_ok());
                 let events = decode_events(start);
                 assert_eq!(events.len(), 1);
-                assert_transfer(&events[0], acc.alice, acc.bob, value);
+                assert_transfer(&events[0], Some(acc.alice), Some(acc.bob), value);
+            }
+
+            #[ink::test]
+            fn constructor_emits_event() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let supply = 1000;
+                let start = recorded_events().count();
+                $constructor(supply);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 1);
+                assert_transfer(&events[0], None, Some(acc.alice), supply);
             }
 
             #[ink::test]
@@ -164,9 +182,9 @@ macro_rules! tests {
 
                 let events = decode_events(start);
                 assert_eq!(events.len(), 3);
-                assert_transfer(&events[0], acc.alice, acc.bob, value);
-                assert_transfer(&events[1], acc.alice, acc.bob, 2 * value);
-                assert_transfer(&events[2], acc.bob, acc.charlie, 3 * value);
+                assert_transfer(&events[0], Some(acc.alice), Some(acc.bob), value);
+                assert_transfer(&events[1], Some(acc.alice), Some(acc.bob), 2 * value);
+                assert_transfer(&events[2], Some(acc.bob), Some(acc.charlie), 3 * value);
             }
 
             #[ink::test]
@@ -492,11 +510,11 @@ macro_rules! tests {
                 let events = decode_events(start);
                 assert_eq!(events.len(), 2);
                 if let Event::Transfer(_) = events[0] {
-                    assert_transfer(&events[0], acc.alice, acc.charlie, value);
+                    assert_transfer(&events[0], Some(acc.alice), Some(acc.charlie), value);
                     assert_approval(&events[1], acc.alice, acc.bob, value);
                 } else {
                     assert_approval(&events[0], acc.alice, acc.bob, value);
-                    assert_transfer(&events[1], acc.alice, acc.charlie, value);
+                    assert_transfer(&events[1], Some(acc.alice), Some(acc.charlie), value);
                 }
             }
 
@@ -588,7 +606,7 @@ macro_rules! tests {
 
                 let events = decode_events(start);
                 assert_eq!(events.len(), 1);
-                assert_transfer(&events[0], acc.alice, acc.bob, value);
+                assert_transfer(&events[0], Some(acc.alice), Some(acc.bob), value);
             }
 
             #[ink::test]
