@@ -7,43 +7,49 @@
 macro_rules! tests {
     ($contract:ident, $constructor:expr) => {
         mod psp22_unit_tests {
-            use super::*;
-            use ink::env::test::*;
-            use ink::env::DefaultEnvironment as E;
-            use ink::primitives::AccountId;
-            use $crate::{Approval, PSP22Error, Transfer, PSP22};
+            use super::super::*;
+            use ink::env::{test::*, DefaultEnvironment as E};
 
-            // Gathers all emitted events, skip `shift` first, and return as a vector.
-            fn get_events(shift: usize) -> Vec<EmittedEvent> {
-                recorded_events().skip(shift).collect()
-            }
+            type Event = <$contract as ink::reflect::ContractEventBase>::Type;
 
-            // Checks if the given event is a Transfer
-            fn is_transfer(event: &EmittedEvent) -> bool {
-                <Transfer as ink::scale::Decode>::decode(&mut &event.data[..]).is_ok()
+            // Gathers all emitted events, skip `shift` first, decode the rest and return as vector
+            fn decode_events(shift: usize) -> Vec<Event> {
+                recorded_events()
+                    .skip(shift)
+                    .map(|e| <Event as scale::Decode>::decode(&mut &e.data[..]).unwrap())
+                    .collect()
             }
 
             // Asserts if the given event is a Transfer with particular from_, to_ and value_
-            fn assert_transfer(event: &EmittedEvent, from: AccountId, to: AccountId, value: u128) {
-                let e = <Transfer as ink::scale::Decode>::decode(&mut &event.data[..])
-                    .expect("Event is not Transfer");
-                assert_eq!(e.from, Some(from), "Transfer event: 'from' mismatch");
-                assert_eq!(e.to, Some(to), "Transfer event: 'to' mismatch");
-                assert_eq!(e.value, value, "Transfer event: 'value' mismatch");
+            fn assert_transfer(event: &Event, from_: AccountId, to_: AccountId, value_: u128) {
+                if let Event::Transfer(Transfer { from, to, value }) = event {
+                    assert_eq!(*from, Some(from_), "Transfer event: 'from' mismatch");
+                    assert_eq!(*to, Some(to_), "Transfer event: 'to' mismatch");
+                    assert_eq!(*value, value_, "Transfer event: 'value' mismatch");
+                } else {
+                    panic!("Event is not Transfer")
+                }
             }
 
             // Asserts if the given event is a Approval with particular owner_, spender_ and amount_
             fn assert_approval(
-                event: &EmittedEvent,
-                owner: AccountId,
-                spender: AccountId,
-                amount: u128,
+                event: &Event,
+                owner_: AccountId,
+                spender_: AccountId,
+                amount_: u128,
             ) {
-                let e = <Approval as ink::scale::Decode>::decode(&mut &event.data[..])
-                    .expect("Event is not Approval");
-                assert_eq!(e.owner, owner, "Approval event: 'owner' mismatch");
-                assert_eq!(e.spender, spender, "Approval event: 'spender' mismatch");
-                assert_eq!(e.amount, amount, "Approval event: 'amount' mismatch");
+                if let Event::Approval(Approval {
+                    owner,
+                    spender,
+                    amount,
+                }) = event
+                {
+                    assert_eq!(*owner, owner_, "Approval event: 'owner' mismatch");
+                    assert_eq!(*spender, spender_, "Approval event: 'spender' mismatch");
+                    assert_eq!(*amount, amount_, "Approval event: 'amount' mismatch");
+                } else {
+                    panic!("Event is not Approval")
+                }
             }
 
             #[ink::test]
@@ -138,7 +144,7 @@ macro_rules! tests {
                 let start = recorded_events().count();
 
                 assert!(token.transfer(acc.bob, value, vec![]).is_ok());
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_transfer(&events[0], acc.alice, acc.bob, value);
             }
@@ -156,7 +162,7 @@ macro_rules! tests {
                 set_caller::<E>(acc.bob);
                 assert!(token.transfer(acc.charlie, 3 * value, vec![]).is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 3);
                 assert_transfer(&events[0], acc.alice, acc.bob, value);
                 assert_transfer(&events[1], acc.alice, acc.bob, 2 * value);
@@ -172,7 +178,7 @@ macro_rules! tests {
                 let start = recorded_events().count();
 
                 assert!(token.transfer(acc.bob, value, vec![]).is_ok());
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0, "Transferring 0 tokens emitted event");
             }
 
@@ -217,7 +223,7 @@ macro_rules! tests {
                     token.transfer(acc.bob, supply + 1, vec![]),
                     Err(PSP22Error::InsufficientBalance)
                 );
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0)
             }
 
@@ -249,7 +255,7 @@ macro_rules! tests {
                 assert_eq!(token.allowance(acc.alice, acc.bob), value);
                 assert_eq!(token.allowance(acc.bob, acc.alice), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
 
@@ -270,7 +276,7 @@ macro_rules! tests {
                 assert_eq!(token.allowance(acc.alice, acc.bob), value);
                 assert_eq!(token.allowance(acc.bob, acc.alice), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
             }
@@ -296,7 +302,7 @@ macro_rules! tests {
                 assert!(token.approve(acc.bob, 4 * value).is_ok());
                 assert_eq!(token.allowance(acc.alice, acc.bob), 4 * value);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 4);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
                 assert_approval(&events[1], acc.alice, acc.charlie, 2 * value);
@@ -315,7 +321,7 @@ macro_rules! tests {
                 assert!(token.approve(acc.alice, value).is_ok());
                 assert_eq!(token.allowance(acc.alice, acc.alice), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -330,7 +336,7 @@ macro_rules! tests {
                 assert!(token.approve(acc.bob, value).is_ok());
                 assert!(token.increase_allowance(acc.bob, supply).is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 2);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
                 assert_approval(&events[1], acc.alice, acc.bob, value + supply);
@@ -351,7 +357,7 @@ macro_rules! tests {
                 assert!(token.decrease_allowance(acc.bob, value).is_ok());
                 assert_eq!(token.allowance(acc.alice, acc.bob), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 3);
                 assert_approval(&events[0], acc.alice, acc.bob, 2 * value);
                 assert_approval(&events[1], acc.alice, acc.bob, value);
@@ -373,7 +379,7 @@ macro_rules! tests {
                     Err(PSP22Error::InsufficientAllowance)
                 );
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
             }
@@ -391,7 +397,7 @@ macro_rules! tests {
                 assert!(token.increase_allowance(acc.bob, 0).is_ok());
                 assert!(token.decrease_allowance(acc.bob, 0).is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_approval(&events[0], acc.alice, acc.bob, value);
             }
@@ -407,7 +413,7 @@ macro_rules! tests {
                 assert!(token.increase_allowance(acc.alice, value).is_ok());
                 assert_eq!(token.allowance(acc.alice, acc.alice), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -422,7 +428,7 @@ macro_rules! tests {
                 assert!(token.decrease_allowance(acc.alice, value).is_ok());
                 assert_eq!(token.allowance(acc.alice, acc.alice), 0);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -483,9 +489,9 @@ macro_rules! tests {
                     .transfer_from(acc.alice, acc.charlie, value, vec![])
                     .is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 2);
-                if is_transfer(&events[0]) {
+                if let Event::Transfer(_) = events[0] {
                     assert_transfer(&events[0], acc.alice, acc.charlie, value);
                     assert_approval(&events[1], acc.alice, acc.bob, value);
                 } else {
@@ -509,7 +515,7 @@ macro_rules! tests {
                     Err(PSP22Error::InsufficientAllowance)
                 );
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -534,7 +540,7 @@ macro_rules! tests {
                 assert_eq!(token.balance_of(acc.bob), value);
                 assert_eq!(token.allowance(acc.bob, acc.charlie), 2 * value);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -560,7 +566,7 @@ macro_rules! tests {
                 assert_eq!(token.balance_of(acc.bob), value);
                 assert_eq!(token.allowance(acc.bob, acc.charlie), value);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -580,7 +586,7 @@ macro_rules! tests {
                 assert_eq!(token.balance_of(acc.alice), supply - value);
                 assert_eq!(token.balance_of(acc.bob), value);
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 1);
                 assert_transfer(&events[0], acc.alice, acc.bob, value);
             }
@@ -598,7 +604,7 @@ macro_rules! tests {
                     .transfer_from(acc.alice, acc.charlie, 0, vec![])
                     .is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
 
@@ -615,7 +621,7 @@ macro_rules! tests {
                     .transfer_from(acc.alice, acc.alice, 2 * supply, vec![])
                     .is_ok());
 
-                let events = get_events(start);
+                let events = decode_events(start);
                 assert_eq!(events.len(), 0);
             }
         }

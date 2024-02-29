@@ -2,13 +2,11 @@
 
 mod data;
 mod errors;
-mod events;
 mod testing;
 mod traits;
 
 pub use data::{PSP22Data, PSP22Event};
 pub use errors::PSP22Error;
-pub use events::{Approval, Transfer};
 pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 
 // An example code of a smart contract using PSP22Data struct to implement
@@ -17,11 +15,12 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 // Any contract can be easily enriched to act as PSP22 token by:
 // (1) adding PSP22Data to contract storage
 // (2) properly initializing it
-// (3) implementing PSP22 trait based on PSP22Data methods
-// (4) properly emitting resulting events
+// (3) defining the correct Transfer and Approval events
+// (4) implementing PSP22 trait based on PSP22Data methods
+// (5) properly emitting resulting events
 //
-// It is a good practice to also implement the optional PSP22Metadata extension (5)
-// and include unit tests (6).
+// It is a good practice to also implement the optional PSP22Metadata extension (6)
+// and include unit tests (7).
 #[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
@@ -52,19 +51,50 @@ mod token {
             }
         }
 
-        // A helper function emitting events contained in a vector of PSP22Events.
-        // (4)
+        // A helper function translating a vector of PSP22Events into the proper
+        // ink event types (defined internally in this contract) and emitting them.
+        // (5)
         fn emit_events(&self, events: Vec<PSP22Event>) {
             for event in events {
                 match event {
-                    PSP22Event::Transfer(e) => self.env().emit_event(e),
-                    PSP22Event::Approval(e) => self.env().emit_event(e),
+                    PSP22Event::Transfer { from, to, value } => {
+                        self.env().emit_event(Transfer { from, to, value })
+                    }
+                    PSP22Event::Approval {
+                        owner,
+                        spender,
+                        amount,
+                    } => self.env().emit_event(Approval {
+                        owner,
+                        spender,
+                        amount,
+                    }),
                 }
             }
         }
     }
 
     // (3)
+    #[ink(event)]
+    pub struct Approval {
+        #[ink(topic)]
+        owner: AccountId,
+        #[ink(topic)]
+        spender: AccountId,
+        amount: u128,
+    }
+
+    // (3)
+    #[ink(event)]
+    pub struct Transfer {
+        #[ink(topic)]
+        from: Option<AccountId>,
+        #[ink(topic)]
+        to: Option<AccountId>,
+        value: u128,
+    }
+
+    // (4)
     impl PSP22 for Token {
         #[ink(message)]
         fn total_supply(&self) -> u128 {
@@ -142,7 +172,7 @@ mod token {
         }
     }
 
-    // (5)
+    // (6)
     impl PSP22Metadata for Token {
         #[ink(message)]
         fn token_name(&self) -> Option<String> {
@@ -158,10 +188,9 @@ mod token {
         }
     }
 
-    // (6)
+    // (7)
     #[cfg(test)]
     mod tests {
-        use super::Token;
         crate::tests!(Token, (|supply| Token::new(supply, None, None, 0)));
     }
 }
