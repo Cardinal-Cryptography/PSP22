@@ -168,6 +168,17 @@ macro_rules! tests {
             }
 
             #[ink::test]
+            fn constructor_with_0_supply_emits_no_events() {
+                let acc = default_accounts::<E>();
+                set_caller::<E>(acc.alice);
+                let start = recorded_events().count();
+                $constructor(0);
+
+                let events = decode_events(start);
+                assert_eq!(events.len(), 0);
+            }
+
+            #[ink::test]
             fn multiple_transfers_emit_correct_events() {
                 let acc = default_accounts::<E>();
                 set_caller::<E>(acc.alice);
