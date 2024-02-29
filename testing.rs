@@ -57,7 +57,19 @@ macro_rules! tests {
                 let acc = default_accounts::<E>();
                 set_caller::<E>(acc.alice);
                 let supply = 1000;
+
+                // Constructor should emit a single Transfer event
+                let start = recorded_events().count();
                 let token = $constructor(supply);
+                let events = decode_events(start);
+                assert_eq!(events.len(), 1);
+                if let Event::Transfer(Transfer { from, to, value }) = events[0] {
+                    assert_eq!(from, None, "Should set 'from=None'");
+                    assert_eq!(to, Some(acc.alice), "Should set 'to=caller'");
+                    assert_eq!(value, supply, "Should set 'value=supply'");
+                } else {
+                    panic!("Event is not Transfer")
+                }
 
                 assert_eq!(token.total_supply(), supply);
                 assert_eq!(token.balance_of(acc.alice), supply);

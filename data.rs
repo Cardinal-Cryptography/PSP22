@@ -45,14 +45,23 @@ pub struct PSP22Data {
 
 impl PSP22Data {
     /// Creates a token with `supply` balance, initially held by the `creator` account.
-    pub fn new(supply: u128, creator: AccountId) -> PSP22Data {
+    pub fn new(supply: u128, creator: AccountId) -> (PSP22Data, Vec<PSP22Event>) {
         let mut data = PSP22Data {
             total_supply: supply,
             balances: Default::default(),
             allowances: Default::default(),
         };
         data.balances.insert(creator, &supply);
-        data
+        let events = if supply > 0 {
+            vec![PSP22Event::Transfer {
+                from: None,
+                to: Some(creator),
+                value: supply,
+            }]
+        } else {
+            vec![]
+        };
+        (data, events)
     }
 
     pub fn total_supply(&self) -> u128 {

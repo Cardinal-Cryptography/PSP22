@@ -43,8 +43,10 @@ mod token {
             symbol: Option<String>,
             decimals: u8,
         ) -> Self {
+            let (data, events) = PSP22Data::new(supply, Self::env().caller()); // (2)
+            Self::emit_events(events);
             Self {
-                data: PSP22Data::new(supply, Self::env().caller()), // (2)
+                data,
                 name,
                 symbol,
                 decimals,
@@ -54,17 +56,17 @@ mod token {
         // A helper function translating a vector of PSP22Events into the proper
         // ink event types (defined internally in this contract) and emitting them.
         // (5)
-        fn emit_events(&self, events: Vec<PSP22Event>) {
+        fn emit_events(events: Vec<PSP22Event>) {
             for event in events {
                 match event {
                     PSP22Event::Transfer { from, to, value } => {
-                        self.env().emit_event(Transfer { from, to, value })
+                        Self::env().emit_event(Transfer { from, to, value })
                     }
                     PSP22Event::Approval {
                         owner,
                         spender,
                         amount,
-                    } => self.env().emit_event(Approval {
+                    } => Self::env().emit_event(Approval {
                         owner,
                         spender,
                         amount,
@@ -119,7 +121,7 @@ mod token {
             _data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
             let events = self.data.transfer(self.env().caller(), to, value)?;
-            self.emit_events(events);
+            Self::emit_events(events);
             Ok(())
         }
 
@@ -134,14 +136,14 @@ mod token {
             let events = self
                 .data
                 .transfer_from(self.env().caller(), from, to, value)?;
-            self.emit_events(events);
+            Self::emit_events(events);
             Ok(())
         }
 
         #[ink(message)]
         fn approve(&mut self, spender: AccountId, value: u128) -> Result<(), PSP22Error> {
             let events = self.data.approve(self.env().caller(), spender, value)?;
-            self.emit_events(events);
+            Self::emit_events(events);
             Ok(())
         }
 
@@ -154,7 +156,7 @@ mod token {
             let events = self
                 .data
                 .increase_allowance(self.env().caller(), spender, delta_value)?;
-            self.emit_events(events);
+            Self::emit_events(events);
             Ok(())
         }
 
@@ -167,7 +169,7 @@ mod token {
             let events = self
                 .data
                 .decrease_allowance(self.env().caller(), spender, delta_value)?;
-            self.emit_events(events);
+            Self::emit_events(events);
             Ok(())
         }
     }
