@@ -8,7 +8,7 @@ This repository contains a simple, minimal implementation of the PSP22 token in 
 
 To use this crate please add the following line in your project's `Cargo.toml`:
 ```TOML
-psp22 = { version = "0.2", default-features = false }
+psp22 = { version = "0.3", default-features = false }
 ```
 
 The contents of this repository can be used in following ways:
