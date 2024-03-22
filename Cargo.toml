@@ -1,6 +1,6 @@
 [package]
 name = "psp22"
-version = "0.2.2"
+version = "0.3.0"
 edition = "2021"
 authors = ["Cardinal"]
 homepage = "https://github.com/Cardinal-Cryptography/PSP22"
@@ -11,20 +11,13 @@ description = "Minimal implementation of PSP22 token standard in pure ink!"
 exclude = [ ".github/*" ]
 
 [dependencies]
-ink = { version = "4.3", default-features = false }
-
-scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
-scale-info = { version = "2.9", default-features = false, features = ["derive"], optional = true }
+ink = { version = "5.0.0", default-features = false }
 
 [lib]
 path = "lib.rs"
 
 [features]
 default = ["std"]
-std = [
-    "ink/std",
-    "scale/std",
-    "scale-info/std",
-]
+std = ["ink/std"]
 contract = []
 ink-as-dependency = []

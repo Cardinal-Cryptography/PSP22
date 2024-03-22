@@ -7,8 +7,8 @@ This repository contains a simple, minimal implementation of the PSP22 token in 
 ## How to use this repository
 
 To use this crate please add the following line in your project's `Cargo.toml`:
-```
-psp22 = { version = "0.2", default-features = false }
+```TOML
+psp22 = { version = "0.3", default-features = false }
 ```
 
 The contents of this repository can be used in following ways:
@@ -16,15 +16,15 @@ The contents of this repository can be used in following ways:
 ### 1. Ready to use contract
 
 The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents using [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
-```
-$ cargo contract build --release --features "contract"
+```bash
+cargo contract build --release --features "contract"
 ```
 ### 2. Cross contract calling with traits
 
 The `PSP22` trait contains all the methods defined in the PSP22 standard. The trait can be used together with ink!'s [`contract_ref`][contract_ref] macro to allow for convenient cross-contract calling.
 
 In your contract, if you would like to make a call to some other contract implementing the PSP22 standard, all you need to do is:
-```
+```rust
 use ink::contract_ref;
 use ink::prelude::vec::vec;
 use psp22::PSP22;
@@ -54,7 +54,7 @@ The contract in [`lib.rs`][lib] contains an example implementation following all
 ### 4. Unit testing
 
 This crate comes with a suite of unit tests for PSP22 tokens. It can be easily added to your contract's unit tests with a helper macro `tests!`. The macro should be invoked inside the main contract's module (the one annotated with `#[ink::contract]`):
-```
+```rust
 #[ink::contract]
 mod mycontract {
     ...
@@ -75,7 +75,7 @@ As you can see in the code snippet above, the `psp22::tests!` macro takes two ar
 ### 5. Burnable and Mintable extensions
 
 The `PSP22Data` class contains also `burn` and `mint` methods, which can be used to implement `PSP22Burnable` and `PSP22Mintable` extensions and make your token burnable and/or mintable. An example implementation follows the same pattern as for the base trait:
-```
+```rust
 impl PSP22Burnable for Token {
     #[ink(message)]
     fn burn(&mut self, value: u128) -> Result<(), PSP22Error> {
@@ -86,7 +86,7 @@ impl PSP22Burnable for Token {
 }
 ```
 Please note that `PSP22Data` `burn` and `mint` methods do not enforce any form of access control. It's probably not a good idea to have a token which can be minted and burned by anyone anytime. When implementing Burnable and Mintable extensions, please make sure that their usage is restricted according to your project's business logic. For example:
-```
+```rust
 #[ink(storage)]
 pub struct Token {
     data: PSP22Data,
@@ -135,5 +135,5 @@ impl PSP22Burnable for Token {
 [substrate]: https://substrate.io
 [cargo-contract]: https://github.com/paritytech/cargo-contract
 [erc20]: https://ethereum.org/en/developers/docs/standards/tokens/erc-20/
-[psp22]: https://github.com/w3f/PSPs/blob/master/PSPs/psp-22.md
+[psp22]: https://github.com/inkdevhub/standards/blob/master/PSPs/psp-22.md
 [contract_ref]: https://paritytech.github.io/ink/ink/macro.contract_ref.html
