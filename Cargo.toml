@@ -17,7 +17,7 @@ ink = { version = "5.0.0", default-features = false }
 path = "lib.rs"
 
 [features]
-default = ["std"]
+default = ["std", "contract"]
 std = ["ink/std"]
 contract = []
 ink-as-dependency = []
