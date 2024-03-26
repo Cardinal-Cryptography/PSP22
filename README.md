@@ -15,9 +15,9 @@ The contents of this repository can be used in following ways:
 
 ### 1. Ready to use contract
 
-The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents using [`cargo-contract`][cargo-contract] with the `"contract"` feature enabled:
+The file [`lib.rs`][lib] contains a ready to use implementation of basic PSP22 token contract (extended with PSP22Metadata). To use it, please check out this repository and compile its contents using [`cargo-contract`][cargo-contract]:
 ```bash
-cargo contract build --release --features "contract"
+cargo contract build --release
 ```
 ### 2. Cross contract calling with traits
 
@@ -26,7 +26,7 @@ The `PSP22` trait contains all the methods defined in the PSP22 standard. The tr
 In your contract, if you would like to make a call to some other contract implementing the PSP22 standard, all you need to do is:
 ```rust
 use ink::contract_ref;
-use ink::prelude::vec::vec;
+use ink::prelude::vec;
 use psp22::PSP22;
 
 let mut token: contract_ref!(PSP22) = other_contract_address.into();
