@@ -6,6 +6,7 @@
 #[macro_export]
 macro_rules! tests {
     ($contract:ident, $constructor:expr) => {
+        #[allow(clippy::redundant_closure_call)]
         mod psp22_unit_tests {
             use super::*;
             use ink::env::test::*;
