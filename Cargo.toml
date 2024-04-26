@@ -1,6 +1,6 @@
 [package]
 name = "psp22"
-version = "0.2.2"
+version = "1.0.0"
 edition = "2021"
 authors = ["Cardinal"]
 homepage = "https://github.com/Cardinal-Cryptography/PSP22"
@@ -26,5 +26,4 @@ std = [
     "scale/std",
     "scale-info/std",
 ]
-contract = []
 ink-as-dependency = []
