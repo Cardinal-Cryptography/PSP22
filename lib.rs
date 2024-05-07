@@ -22,7 +22,6 @@ pub use traits::{PSP22Burnable, PSP22Metadata, PSP22Mintable, PSP22};
 //
 // It is a good practice to also implement the optional PSP22Metadata extension (5)
 // and include unit tests (6).
-#[cfg(feature = "contract")]
 #[ink::contract]
 mod token {
     use crate::{PSP22Data, PSP22Error, PSP22Event, PSP22Metadata, PSP22};
